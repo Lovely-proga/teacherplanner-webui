@@ -1,22 +1,19 @@
-// Защищённая выдача кода приложения. Файл app-content/teacher-planner.html
-// НЕ лежит в /public — значит он не имеет собственного публичного URL и
-// не может быть скачан напрямую. Единственный способ его получить — прислать
-// сюда действительный лицензионный ключ; тогда мы читаем файл с диска и
-// отдаём его как содержимое ответа.
+// Защищённая выдача кода приложения. HTML приложения зашит в
+// app-content/teacher-planner.b64.js (base64) и подключается через обычный
+// require() — так сборщик Vercel гарантированно включает его в бандл функции,
+// без зависимости от includeFiles / чтения файлов с диска в рантайме.
+// Файл app-content/teacher-planner.b64.js НЕ лежит в /public — своего
+// публичного URL не имеет. Получить его содержимое можно только через этот
+// эндпоинт, и только с действительным лицензионным ключом.
 
-const fs = require("fs");
-const path = require("path");
 const { getDatabase, withDatabase } = require("./lib/github");
 const { evaluateKey } = require("./lib/license");
-
-const APP_FILE = path.join(process.cwd(), "app-content", "teacher-planner.html");
+const encodedApp = require("../app-content/teacher-planner.b64.js");
 
 let cachedHtml = null;
 function loadAppHtml() {
-  // Кэшируем в памяти "тёплого" инстанса функции, чтобы не читать файл с диска
-  // на каждый запрос. При новом деплое кэш всё равно сбросится.
   if (!cachedHtml) {
-    cachedHtml = fs.readFileSync(APP_FILE, "utf-8");
+    cachedHtml = Buffer.from(encodedApp, "base64").toString("utf-8");
   }
   return cachedHtml;
 }
