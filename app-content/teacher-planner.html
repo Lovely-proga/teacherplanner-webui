@@ -1,0 +1,3890 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Помічник вчителя</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700;800&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+:root{
+  --bg:#070C1A;
+  --panel:#0A1530;
+  --panel-2:#0E1D3F;
+  --card:#0D1B3A;
+  --line:rgba(88,164,255,0.22);
+  --line-soft:rgba(88,164,255,0.12);
+  --blue:#2E7DF0;
+  --blue-bright:#5AC8FF;
+  --blue-deep:#164FA8;
+  --yellow:#FFC629;
+  --yellow-deep:#E0A400;
+  --ink:#EAF2FF;
+  --muted:#7E93BE;
+  --muted-dim:#5A6D93;
+  --danger:#FF5D6C;
+  --danger-bg:rgba(255,93,108,.12);
+  --success:#38D9A9;
+  --card-shadow:0 0 0 1px var(--line), 0 10px 30px rgba(0,0,0,.35);
+  --glow:0 0 0 1px rgba(90,200,255,.35), 0 0 18px rgba(46,125,240,.25);
+  --radius:10px;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  font-family:'Manrope',sans-serif;
+  color:var(--ink);
+  background:var(--bg);
+  background-image:
+    linear-gradient(var(--line-soft) 1px, transparent 1px),
+    linear-gradient(90deg, var(--line-soft) 1px, transparent 1px);
+  background-size:38px 38px;
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,.serif{font-family:'Space Grotesk', sans-serif; font-weight:700; letter-spacing:-.01em;}
+button{font-family:inherit;cursor:pointer;}
+input,textarea,select{font-family:inherit;}
+:focus-visible{outline:2px solid var(--yellow); outline-offset:2px;}
+.mono{font-family:'JetBrains Mono', monospace;}
+a{color:var(--blue-bright);}
+
+.app{
+  display:flex;
+  min-height:100vh;
+}
+
+/* ---------- Side nav ---------- */
+.side-nav{
+  width:220px;
+  flex-shrink:0;
+  background:linear-gradient(180deg, var(--panel) 0%, #081029 100%);
+  border-right:1px solid var(--line);
+  padding:26px 0;
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+  position:relative;
+}
+.side-nav::after{
+  content:'';
+  position:absolute; top:0; right:-1px; bottom:0; width:1px;
+  background:linear-gradient(180deg, transparent, var(--blue-bright), transparent);
+  opacity:.5;
+}
+.brand{
+  color:var(--ink);
+  padding:0 22px 20px 22px;
+  border-bottom:1px solid var(--line);
+  margin-bottom:14px;
+}
+.brand .title{
+  font-size:17px; font-weight:800; line-height:1.25; letter-spacing:.01em;
+  font-family:'Space Grotesk', sans-serif;
+  background:linear-gradient(90deg, var(--blue-bright), var(--yellow));
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+}
+.brand .sub{font-size:11px; color:var(--muted); margin-top:6px; letter-spacing:.06em; text-transform:uppercase; font-family:'JetBrains Mono',monospace;}
+.tab-btn{
+  position:relative;
+  display:flex;
+  align-items:center;
+  gap:11px;
+  border:none;
+  background:transparent;
+  color:var(--muted);
+  text-align:left;
+  padding:12px 18px 12px 22px;
+  font-size:13.5px;
+  font-weight:600;
+  min-height:44px;
+  border-left:2px solid transparent;
+  transition:background .15s ease, color .15s ease, border-color .15s ease;
+}
+.tab-btn svg{flex-shrink:0; width:18px; height:18px;}
+.tab-btn:hover{background:rgba(90,200,255,.06); color:var(--ink);}
+.tab-btn.active{
+  background:linear-gradient(90deg, rgba(46,125,240,.18), rgba(46,125,240,.02));
+  color:var(--ink);
+  border-left:2px solid var(--yellow);
+}
+.tab-btn.active svg{color:var(--yellow);}
+
+/* ---------- Main ---------- */
+.main{
+  flex:1;
+  min-width:0;
+}
+.topbar{
+  background:rgba(7,12,26,.7);
+  backdrop-filter:blur(6px);
+  border-bottom:1px solid var(--line);
+  padding:22px 32px 18px 32px;
+  position:relative;
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:16px;
+  flex-wrap:wrap;
+}
+.topbar::after{
+  content:'';
+  position:absolute; left:0; right:0; bottom:-1px; height:2px;
+  background:linear-gradient(90deg, var(--blue-bright), var(--yellow) 60%, transparent);
+  opacity:.8;
+}
+.topbar h1{margin:0; font-size:23px; color:var(--ink);}
+.topbar p{margin:5px 0 0 0; color:var(--muted); font-size:13.5px;}
+.backup-controls{display:flex; gap:8px; flex-wrap:wrap; align-items:flex-start;}
+.backup-controls .btn{font-size:12.5px; padding:8px 12px; white-space:nowrap;}
+.content{padding:26px 32px 60px 32px; max-width:1100px;}
+
+.card{
+  background:linear-gradient(180deg, var(--card), var(--panel-2));
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  box-shadow:var(--card-shadow);
+  padding:20px;
+  margin-bottom:20px;
+  position:relative;
+}
+.card::before, .card::after{
+  content:''; position:absolute; width:10px; height:10px;
+  border-top:1.5px solid var(--blue-bright); border-left:1.5px solid var(--blue-bright);
+  top:-1px; left:-1px; opacity:.7;
+}
+.card::after{
+  left:auto; right:-1px; top:auto; bottom:-1px;
+  border-top:none; border-left:none;
+  border-bottom:1.5px solid var(--blue-bright); border-right:1.5px solid var(--blue-bright);
+}
+.card h2{margin:0 0 14px 0; font-size:17px; color:var(--ink);}
+.card h3{margin:0 0 10px 0; font-size:14.5px; color:var(--ink);}
+.row{display:flex; gap:10px; flex-wrap:wrap; align-items:center;}
+.field{display:flex; flex-direction:column; gap:5px;}
+.field label{font-size:11.5px; font-weight:700; color:var(--muted); letter-spacing:.04em; text-transform:uppercase; font-family:'JetBrains Mono',monospace;}
+input[type=text], input[type=password], input[type=date], select, textarea{
+  border:1.5px solid var(--line);
+  background:rgba(6,12,28,.65);
+  border-radius:7px;
+  padding:10px 12px;
+  font-size:14px;
+  color:var(--ink);
+  min-height:44px;
+}
+input::placeholder, textarea::placeholder{color:var(--muted-dim);}
+textarea{min-height:110px; resize:vertical; line-height:1.5;}
+input[type=text]:focus, input[type=password]:focus, input[type=date]:focus, select:focus, textarea:focus{border-color:var(--blue-bright); box-shadow:0 0 0 3px rgba(90,200,255,.15);}
+select option{background:#0A1530; color:var(--ink);}
+.btn{
+  border:none;
+  border-radius:7px;
+  padding:11px 18px;
+  font-weight:700;
+  font-size:13.5px;
+  min-height:44px;
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  transition:filter .15s, transform .1s;
+}
+.btn:hover{filter:brightness(1.08);}
+.btn:active{transform:translateY(1px);}
+.btn-primary{background:var(--yellow); color:#101625; box-shadow:0 0 16px rgba(255,198,41,.25);}
+.btn-amber{background:var(--yellow); color:#101625;}
+.btn-coral{background:var(--blue); color:#fff;}
+.btn-ghost{background:transparent; color:var(--ink); border:1.5px solid var(--line);}
+.btn-ghost:hover{border-color:var(--blue-bright); background:rgba(90,200,255,.06);}
+.btn-danger{background:transparent; color:var(--danger); border:1.5px solid rgba(255,93,108,.4);}
+.btn-danger.confirming{background:var(--danger); color:#fff;}
+.btn:disabled{opacity:.45; cursor:not-allowed;}
+.btn-icon{padding:9px; min-width:44px; justify-content:center;}
+.file-upload-btn{cursor:pointer;}
+.pill{display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:700; padding:3px 9px; border-radius:20px;}
+
+/* ---------- Calendar ---------- */
+.cal-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; flex-wrap:wrap; gap:10px;}
+.cal-nav{display:flex; align-items:center; gap:8px;}
+.cal-title{font-size:18px; min-width:190px; text-align:center; font-family:'Space Grotesk',sans-serif;}
+.cal-grid{display:grid; grid-template-columns:repeat(7,1fr); gap:6px;}
+.cal-dow{font-size:11px; font-weight:800; text-align:center; color:var(--muted); padding-bottom:4px; text-transform:uppercase; letter-spacing:.06em; font-family:'JetBrains Mono',monospace;}
+.cal-cell{
+  border:1px solid var(--line);
+  border-radius:8px;
+  min-height:96px;
+  padding:6px 7px;
+  background:rgba(10,20,45,.55);
+  display:flex; flex-direction:column; gap:3px;
+  text-align:left;
+  min-width:0;
+  transition:border-color .12s, transform .12s, box-shadow .12s;
+}
+.cal-cell:hover{border-color:var(--blue-bright); transform:translateY(-1px); box-shadow:0 0 0 1px var(--blue-bright);}
+.cal-cell.empty{background:transparent; border:none; box-shadow:none;}
+.cal-cell.weekend{background:rgba(6,12,28,.4);}
+.cal-cell.today{border-color:var(--yellow); border-width:2px; box-shadow:0 0 10px rgba(255,198,41,.2);}
+.cal-daynum{font-family:'JetBrains Mono',monospace; font-weight:700; font-size:12px; display:flex; align-items:center; justify-content:space-between; color:var(--muted);}
+.cal-lesson{
+  font-size:10.5px;
+  line-height:1.25;
+  padding:2px 5px;
+  border-radius:5px;
+  background:rgba(46,125,240,.16);
+  color:var(--blue-bright);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.cal-lesson.has-topic{background:rgba(46,125,240,.22); border-left:2px solid var(--blue-bright);}
+.cal-lesson.cal-lesson-danger{background:rgba(255,93,108,.18); border-left:2px solid var(--danger); color:#FFB3BA; font-weight:700;}
+.cake-badge{width:16px; height:16px; color:var(--yellow);}
+.ec-badge{width:15px; height:15px; color:var(--danger); flex-shrink:0;}
+.cal-daynum-badges{display:flex; align-items:center; gap:3px;}
+.legend{display:flex; gap:14px; flex-wrap:wrap; margin-top:14px; font-size:12px; color:var(--muted);}
+.legend span{display:inline-flex; align-items:center; gap:6px;}
+.dot{width:9px; height:9px; border-radius:50%; display:inline-block;}
+
+/* ---------- Рік (міні-місяці) ---------- */
+.year-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(220px,1fr)); gap:14px;}
+.mini-month{
+  border:1px solid var(--line); border-radius:9px; background:rgba(10,20,45,.55);
+  padding:12px; text-align:left; transition:border-color .12s, transform .12s;
+}
+.mini-month:hover{border-color:var(--blue-bright); transform:translateY(-2px);}
+.mini-month-title{font-size:13.5px; margin-bottom:8px; font-family:'Space Grotesk',sans-serif;}
+.mini-grid{display:grid; grid-template-columns:repeat(7,1fr); gap:2px;}
+.mini-cell{
+  font-family:'JetBrains Mono',monospace; font-size:9.5px; text-align:center;
+  padding:3px 0; border-radius:3px; color:var(--muted-dim);
+}
+.mini-cell.empty{visibility:hidden;}
+.mini-cell.weekend{color:var(--muted-dim); opacity:.6;}
+.mini-cell.has-data{background:rgba(46,125,240,.2); color:var(--blue-bright); font-weight:700;}
+.mini-cell.has-bday{box-shadow:inset 0 -2px 0 var(--yellow);}
+
+/* ---------- Schedule table ---------- */
+table.sched{border-collapse:collapse; width:100%;}
+table.sched th, table.sched td{border:1px solid var(--line); padding:6px; text-align:center; vertical-align:middle;}
+table.sched th{background:rgba(46,125,240,.12); font-size:12px; padding:9px 6px; color:var(--ink); font-family:'JetBrains Mono',monospace; text-transform:uppercase; letter-spacing:.03em;}
+table.sched td.per-num{font-family:'JetBrains Mono',monospace; font-weight:700; color:var(--muted); width:38px; background:rgba(10,20,45,.5);}
+table.sched input{width:100%; min-width:90px; text-align:center; min-height:40px;}
+
+/* ---------- Subject plan cards ---------- */
+.subject-card{border-left:3px solid var(--blue-bright);}
+.subject-card-head{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px;}
+.subject-card-head h3{margin:0;}
+.textbook-box{
+  background:rgba(255,198,41,.06); border:1px dashed var(--yellow-deep); border-radius:9px;
+  padding:10px 12px; margin-bottom:12px;
+}
+.textbook-info{display:flex; align-items:center; gap:8px; font-size:13px; flex-wrap:wrap; color:var(--ink);}
+.textbook-info svg{flex-shrink:0; color:var(--yellow);}
+.textbook-info .delete-textbook-btn{margin-left:auto; padding:5px; min-width:30px; min-height:30px;}
+.progress-bar{height:7px; background:rgba(6,12,28,.6); border-radius:6px; overflow:hidden; margin:8px 0; border:1px solid var(--line);}
+.progress-fill{height:100%; background:linear-gradient(90deg, var(--blue), var(--blue-bright));}
+.day-pill{
+  min-width:44px; min-height:38px; padding:6px 10px; border-radius:7px;
+  border:1.5px solid var(--line); background:rgba(10,20,45,.5); color:var(--muted);
+  font-weight:700; font-size:12.5px; transition:all .12s;
+}
+.day-pill:hover:not(:disabled){border-color:var(--blue-bright); color:var(--ink);}
+.day-pill.active{background:var(--blue); border-color:var(--blue); color:#fff;}
+.day-pill.unavailable{opacity:.35; cursor:not-allowed; text-decoration:line-through;}
+.day-pill:disabled{cursor:not-allowed;}
+
+/* ---------- Календаризований список дат ---------- */
+.dated-list{
+  margin-top:12px; border-top:1px solid var(--line); padding-top:10px;
+  max-height:260px; overflow-y:auto;
+}
+.dated-list.hidden{display:none;}
+.dated-row{display:flex; gap:12px; padding:6px 0; font-size:13px; border-bottom:1px dashed var(--line);}
+.dated-row:last-child{border-bottom:none;}
+.dated-date{font-family:'JetBrains Mono',monospace; font-weight:700; color:var(--yellow); min-width:120px; flex-shrink:0;}
+.dated-letters{color:var(--blue-bright); font-weight:700; font-size:12px;}
+.dated-topic{color:var(--ink); flex:1;}
+.dated-remove-btn{
+  background:none; border:none; color:var(--muted); flex-shrink:0;
+  width:28px; height:28px; border-radius:6px; display:flex; align-items:center; justify-content:center;
+}
+.dated-remove-btn:hover{background:var(--danger-bg); color:var(--danger);}
+
+.topics-list{max-height:220px; overflow-y:auto; border:1px solid var(--line); border-radius:8px; margin-top:8px;}
+.topic-row{display:flex; align-items:center; gap:10px; padding:7px 10px; border-bottom:1px dashed var(--line); font-size:13px;}
+.topic-row:last-child{border-bottom:none;}
+.topic-num{color:var(--muted); font-size:11px; min-width:20px; flex-shrink:0; font-family:'JetBrains Mono',monospace;}
+.topic-text{flex:1; color:var(--ink);}
+.topic-remove-btn{
+  background:none; border:none; color:var(--muted); flex-shrink:0;
+  width:28px; height:28px; border-radius:6px; display:flex; align-items:center; justify-content:center;
+}
+.topic-remove-btn:hover{background:var(--danger-bg); color:var(--danger);}
+
+/* ---------- Modal / day detail ---------- */
+.overlay{
+  position:fixed; inset:0; background:rgba(3,7,17,.72);
+  display:flex; align-items:flex-start; justify-content:center;
+  padding:40px 16px; overflow-y:auto; z-index:50;
+}
+.overlay.hidden{display:none;}
+.modal{
+  background:linear-gradient(180deg, var(--card), var(--panel-2)); border:1px solid var(--line); border-radius:12px; max-width:520px; width:100%;
+  box-shadow:0 20px 60px rgba(0,0,0,.55), var(--glow); padding:22px;
+}
+.modal-head{display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:14px;}
+.modal-lesson-row{display:flex; gap:8px; align-items:center; padding:9px 0; border-bottom:1px solid var(--line);}
+.modal-lesson-row .subj{font-weight:700; font-size:13px; min-width:120px; color:var(--blue-bright);}
+.modal-lesson-row input{flex:1; min-height:38px; font-size:13px;}
+.close-x{background:none; border:none; width:36px; height:36px; border-radius:8px; color:var(--muted);}
+.close-x:hover{background:var(--line-soft); color:var(--ink);}
+
+/* ---------- Попередній перегляд тем з файлу ---------- */
+.preview-list{max-height:360px; overflow-y:auto; border:1px solid var(--line); border-radius:8px; padding:4px;}
+.preview-row{
+  display:flex; align-items:flex-start; gap:10px; padding:8px 10px; border-radius:6px;
+  font-size:13.5px; cursor:pointer; min-height:36px;
+}
+.preview-row:hover{background:var(--line-soft);}
+.preview-row input{margin-top:3px; width:18px; height:18px; flex-shrink:0;}
+.preview-row-header span{color:var(--muted); text-decoration:line-through;}
+
+/* ---------- Birthdays ---------- */
+.bday-item{display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--line); gap:10px;}
+.bday-item:last-child{border-bottom:none;}
+.bday-name{font-weight:700; font-size:14px; color:var(--ink);}
+.bday-date{color:var(--muted); font-size:12.5px; font-family:'JetBrains Mono',monospace;}
+.upcoming-item{display:flex; align-items:center; gap:10px; padding:8px 0;}
+.upcoming-badge{background:var(--yellow); color:#101625; font-size:11px; font-weight:800; padding:3px 8px; border-radius:20px; white-space:nowrap;}
+.upcoming-badge-danger{background:var(--danger); color:#fff;}
+.modal-ec-alert{
+  background:var(--danger-bg); border:1px solid rgba(255,93,108,.35); border-radius:8px;
+  padding:10px 14px; margin-bottom:14px; color:var(--danger); font-weight:700; font-size:13.5px;
+}
+.modal-ec-alert div{padding:2px 0;}
+
+/* ---------- Lesson generator ---------- */
+.gen-output{
+  background:rgba(6,12,28,.55); border:1px solid var(--line); border-radius:10px;
+  padding:18px 20px; margin-top:16px; font-size:14.5px; line-height:1.7; white-space:pre-wrap;
+}
+.upcoming-lesson-btn{
+  display:flex; align-items:center; gap:12px; width:100%; text-align:left;
+  padding:11px 12px; border:1px solid var(--line); border-radius:8px;
+  background:rgba(10,20,45,.5); margin-bottom:8px; min-height:44px; transition:border-color .12s, transform .12s;
+}
+.upcoming-lesson-btn:hover{border-color:var(--blue-bright); transform:translateY(-1px);}
+.upcoming-lesson-btn:last-child{margin-bottom:0;}
+.uld-date{font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--yellow); font-weight:700; min-width:56px;}
+.uld-subject{font-weight:700; font-size:13px; color:var(--blue-bright); min-width:120px;}
+.uld-topic{font-size:13px; color:var(--ink); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.gen-output h3{font-family:'Space Grotesk',sans-serif; font-size:15.5px; margin:16px 0 6px 0; color:var(--blue-bright);}
+.gen-output h3:first-child{margin-top:0;}
+.loader{display:flex; align-items:center; gap:10px; color:var(--muted); font-size:13.5px; padding:10px 0;}
+.spinner{width:18px; height:18px; border:3px solid var(--line); border-top-color:var(--blue-bright); border-radius:50%; animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.empty-hint{color:var(--muted); font-size:13.5px; padding:8px 0;}
+.warn-hint{
+  color:var(--danger); background:var(--danger-bg); border:1px solid rgba(255,93,108,.3);
+  border-radius:8px; padding:8px 12px; font-size:13px; margin:0 0 10px 0;
+}
+.toast{
+  position:fixed; bottom:22px; left:50%; transform:translateX(-50%);
+  background:var(--panel); color:var(--ink); padding:11px 20px; border-radius:30px;
+  font-size:13.5px; font-weight:600; box-shadow:0 6px 20px rgba(0,0,0,.4), 0 0 0 1px var(--blue-bright);
+  z-index:100; opacity:0; pointer-events:none; transition:opacity .2s, transform .2s;
+}
+.toast.show{opacity:1; transform:translateX(-50%) translateY(-6px);}
+
+/* ---------- Плани на чверть / канікули ---------- */
+.period-item{padding:14px 0; border-bottom:1px solid var(--line);}
+.period-item:last-child{border-bottom:none;}
+.period-item-head{display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;}
+.period-item-title{font-weight:700; font-size:14.5px; color:var(--ink); display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+.period-item-actions{display:flex; gap:6px; flex-shrink:0;}
+.period-item-dates{font-size:12px; color:var(--muted); margin-top:4px;}
+.period-item-content{font-size:13.5px; color:var(--ink); margin-top:8px; line-height:1.6; opacity:.92;}
+.status-badge{font-size:10.5px; font-weight:800; padding:2px 8px; border-radius:20px; text-transform:uppercase; letter-spacing:.04em; font-family:'JetBrains Mono',monospace;}
+.status-future{background:rgba(46,125,240,.18); color:var(--blue-bright);}
+.status-current{background:rgba(255,198,41,.18); color:var(--yellow);}
+.status-past{background:rgba(126,147,190,.15); color:var(--muted);}
+
+/* ---------- Електронний журнал ---------- */
+.journal-head-row{display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap;}
+.journal-head-row h2{margin:0;}
+.journal-topic-hint{
+  font-size:12.5px; color:var(--muted); background:rgba(10,20,45,.5); border:1px solid var(--line);
+  border-radius:20px; padding:6px 14px; max-width:60%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  transition:border-color .15s, color .15s, background .15s;
+}
+.journal-topic-hint.active{color:var(--yellow); border-color:var(--yellow-deep); background:rgba(255,198,41,.1);}
+.journal-scroll{overflow:auto; max-height:64vh; margin-top:10px; border:1px solid var(--line); border-radius:8px;}
+table.journal-table{border-collapse:separate; border-spacing:0; width:100%; min-width:600px;}
+table.journal-table th, table.journal-table td{border-right:1px solid var(--line); border-bottom:1px solid var(--line); padding:4px; text-align:center; vertical-align:middle;}
+table.journal-table tr > *:first-child{border-left:1px solid var(--line);}
+table.journal-table thead th{border-top:1px solid var(--line);}
+table.journal-table thead th{
+  background:rgba(30,55,110,.98); font-size:10.5px; font-weight:700; color:var(--ink); font-family:'JetBrains Mono',monospace; padding:6px 4px; white-space:nowrap;
+  position:sticky; top:0; z-index:3;
+}
+table.journal-table .jt-num{width:34px; font-family:'JetBrains Mono',monospace; color:var(--muted); font-size:12px;}
+table.journal-table .jt-name{
+  text-align:left; min-width:190px; max-width:190px; font-size:13px; padding:6px 8px; white-space:nowrap;
+  position:sticky; left:0; z-index:2; background:var(--panel-2); box-shadow:2px 0 6px rgba(0,0,0,.35);
+}
+table.journal-table thead .jt-name{z-index:4; background:rgba(30,55,110,.98); position:sticky; top:0; left:0;}
+table.journal-table .jt-date{min-width:40px;}
+.jt-date-sub{font-size:9px; font-weight:600; color:var(--muted); text-transform:none; margin-top:1px;}
+table.journal-table .jt-summary{min-width:60px; background:rgba(255,198,41,.06);}
+table.journal-table .jt-cell{padding:2px;}
+.jt-input{
+  width:100%; min-width:34px; max-width:56px; text-align:center;
+  border:none; background:transparent; color:var(--ink); font-size:12.5px;
+  min-height:30px; padding:2px; border-radius:4px;
+}
+.jt-input:focus{background:rgba(90,200,255,.12); outline:1.5px solid var(--blue-bright);}
+.jt-input-summary{color:var(--yellow); font-weight:700;}
+.jt-input-summary::placeholder{color:rgba(255,198,41,.55); font-weight:600;}
+table.journal-table .jt-extra{min-width:70px; background:rgba(255,198,41,.1);}
+.jt-extra-label{font-size:10.5px; font-weight:800; white-space:normal; max-width:80px; margin:0 auto;}
+.jt-extra-type{font-size:9px; font-weight:600; color:var(--muted); text-transform:none; margin-top:2px;}
+.jt-extra-actions{display:flex; justify-content:center; gap:4px; margin-top:4px;}
+.jt-extra-btn{
+  background:rgba(10,20,45,.6); border:1px solid var(--line); color:var(--blue-bright);
+  width:20px; height:20px; border-radius:4px; font-size:12px; line-height:1; cursor:pointer; padding:0;
+}
+.jt-extra-btn:hover{border-color:var(--blue-bright); background:rgba(90,200,255,.15);}
+.jt-extra-btn.jt-extra-del{color:var(--danger);}
+.jt-extra-btn.jt-extra-del:hover{border-color:var(--danger); background:var(--danger-bg);}
+table.journal-table .jt-cell-extra-thematic{background:rgba(255,198,41,.06);}
+
+/* ---------- Журнал інструктажів (ТБ і ОБЖ) ---------- */
+table.sj-journal-table{border-collapse:separate; border-spacing:0; width:100%; min-width:640px;}
+table.sj-journal-table th, table.sj-journal-table td{border-right:1px solid var(--line); border-bottom:1px solid var(--line); padding:6px 8px; text-align:left; vertical-align:middle; font-size:13px;}
+table.sj-journal-table tr > *:first-child{border-left:1px solid var(--line);}
+table.sj-journal-table thead th{border-top:1px solid var(--line); background:rgba(30,55,110,.95); color:#fff; font-weight:700; text-transform:uppercase; font-size:11px; letter-spacing:.02em; white-space:nowrap;}
+table.sj-journal-table .sj-num{width:34px; text-align:center; font-family:'JetBrains Mono',monospace; color:var(--muted); font-size:12px;}
+table.sj-journal-table .sj-meta{white-space:nowrap; vertical-align:top; font-size:12.5px;}
+table.sj-journal-table .sj-actions{text-align:center; vertical-align:top; white-space:nowrap;}
+.sj-del-row-btn{background:none; border:none; color:var(--danger); cursor:pointer; font-size:13px; line-height:1; padding:2px 4px;}
+.sj-del-row-btn:hover{opacity:.7;}
+
+/* ---------- Класний керівник ---------- */
+.roster-header{
+  display:grid; grid-template-columns:1.4fr 1.2fr 1fr 44px; gap:8px;
+  font-size:11px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.03em;
+  font-family:'JetBrains Mono',monospace; padding:0 2px 6px 2px;
+}
+.roster-row{
+  display:grid; grid-template-columns:1.4fr 1.2fr 1fr 44px; gap:8px; align-items:center;
+  padding:6px 0; border-bottom:1px dashed var(--line);
+}
+.roster-row:last-child{border-bottom:none;}
+.roster-row input{min-height:38px; font-size:13px;}
+
+/* ---------- Документи ---------- */
+.doc-check{display:flex; align-items:center; gap:10px; cursor:pointer; flex:1; min-width:0;}
+.doc-check input[type=checkbox]{width:18px; height:18px; flex-shrink:0; accent-color:var(--blue-bright);}
+
+@media (max-width:760px){
+  .app{flex-direction:column;}
+  .side-nav{width:100%; flex-direction:row; overflow-x:auto; padding:14px 10px; gap:4px; border-right:none; border-bottom:1px solid var(--line);}
+  .brand{display:none;}
+  .tab-btn{white-space:nowrap; border-radius:8px !important; border-left:none !important; margin:0 !important;}
+  .tab-btn.active{background:rgba(46,125,240,.18);}
+  .content{padding:18px 14px 50px 14px;}
+  .cal-cell{min-height:76px;}
+  .roster-header{display:none;}
+  .roster-row{grid-template-columns:1fr; gap:6px;}
+  .journal-topic-hint{max-width:100%; white-space:normal;}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <nav class="side-nav" aria-label="Розділи щоденника">
+    <div class="brand">
+      <div class="title">Помічник вчителя</div>
+    </div>
+    <button class="tab-btn active" data-tab="calendar" aria-current="page">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg>
+      Календар
+    </button>
+    <button class="tab-btn" data-tab="schedule">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+      Розклад
+    </button>
+    <button class="tab-btn" data-tab="plans">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h12l4 4v12H4z"/><path d="M16 4v4h4M8 12h8M8 16h8"/></svg>
+      Календарне планування
+    </button>
+    <button class="tab-btn" data-tab="periods">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      Плани на чверть і канікули
+    </button>
+    <button class="tab-btn" data-tab="generator">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><path d="M9 7h7M9 11h7"/></svg>
+      Розробка уроку
+    </button>
+    <button class="tab-btn" data-tab="journal">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 4v17M13 13h4M13 17h4"/></svg>
+      Електронний журнал
+    </button>
+    <button class="tab-btn" data-tab="classTeacher">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="10" cy="7" r="4"/><path d="M19 21v-2a4 4 0 0 0-3-3.87"/><path d="M15.5 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Класний керівник
+    </button>
+    <button class="tab-btn" data-tab="extracurricular">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4z"/><path d="M17 5h3a1 1 0 0 1 1 1v1a4 4 0 0 1-4 4M7 5H4a1 1 0 0 0-1 1v1a4 4 0 0 0 4 4"/></svg>
+      Позакласна робота
+    </button>
+    <button class="tab-btn" data-tab="safety">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M12 8v5M12 16h.01"/></svg>
+      ТБ і ОБЖ
+    </button>
+    <button class="tab-btn" data-tab="attestation">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M9 13.5 7 22l5-3 5 3-2-8.5"/></svg>
+      Атестація
+    </button>
+    <button class="tab-btn" data-tab="documents">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h6M9 9h1"/></svg>
+      Документи
+    </button>
+    <button class="tab-btn" data-tab="birthdays">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21v-6a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v6"/><path d="M12 11V7M9 7c0-1 .8-1.5.8-2.5S9 3 9 3M15 7c0-1-.8-1.5-.8-2.5S15 3 15 3"/><path d="M4 17h16"/></svg>
+      Дні народження
+    </button>
+  </nav>
+
+  <main class="main">
+    <div class="topbar">
+      <div>
+        <h1 id="topbarTitle" class="serif">Календар</h1>
+        <p id="topbarSub">Навчальний рік починається з вересня</p>
+      </div>
+      <div class="backup-controls">
+        <button class="btn btn-ghost" id="backupExportBtn" title="Зберегти всі дані програми у файл .json на комп'ютер">⬇ Резервна копія</button>
+        <button class="btn btn-ghost" id="backupImportBtn" title="Завантажити раніше збережений файл .json і відновити з нього всі дані">⬆ Відновити з копії</button>
+        <input type="file" id="backupImportInput" accept="application/json,.json" style="display:none;">
+      </div>
+    </div>
+    <div class="content" id="content"><!-- рендериться скриптом --></div>
+  </main>
+</div>
+
+<div class="overlay hidden" id="backupConfirmOverlay">
+  <div class="modal" style="max-width:480px;">
+    <h2 style="margin-top:0;">Відновити з резервної копії?</h2>
+    <p class="empty-hint">Усі поточні дані в програмі (розклад, календарне планування, журнал, ТБ і ОБЖ тощо) будуть замінені вмістом обраного файла. Цю дію не можна скасувати. Рекомендуємо спершу зберегти поточну резервну копію, якщо в ній є цінні дані.</p>
+    <div class="row" style="justify-content:flex-end; margin-top:14px;">
+      <button class="btn btn-ghost" id="backupConfirmCancel">Скасувати</button>
+      <button class="btn btn-primary" id="backupConfirmOk">Так, відновити</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay hidden" id="dayOverlay">
+  <div class="modal" id="dayModal"></div>
+</div>
+
+<div class="overlay hidden" id="planPreviewOverlay">
+  <div class="modal" id="planPreviewModal" style="max-width:640px;"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+if(window.pdfjsLib){
+  pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+}
+</script>
+<script>
+/* ====================== СТАН ====================== */
+
+/* Універсальне сховище: у Claude.ai використовує window.storage,
+   а поза ним (наприклад, на GitHub Pages) — автоматично localStorage браузера. */
+const AppStorage = (function(){
+  const hasNative = typeof window !== 'undefined' && window.storage && typeof window.storage.get === 'function';
+  const LS_PREFIX = 'teacherPlanner__';
+
+  function lsKey(key, shared){ return LS_PREFIX + (shared ? 'shared__' : '') + key; }
+
+  function lsGet(key, shared){
+    return new Promise((resolve, reject)=>{
+      try{
+        const raw = localStorage.getItem(lsKey(key, shared));
+        if(raw === null){ reject(new Error('key not found: ' + key)); return; }
+        resolve({ key, value: raw, shared: !!shared });
+      }catch(e){ reject(e); }
+    });
+  }
+  function lsSet(key, value, shared){
+    return new Promise((resolve, reject)=>{
+      try{
+        localStorage.setItem(lsKey(key, shared), value);
+        resolve({ key, value, shared: !!shared });
+      }catch(e){
+        if(e && (e.name === 'QuotaExceededError' || e.code === 22 || e.code === 1014)){
+          reject(new Error('Сховище браузера переповнене (localStorage). Спробуйте очистити кеш браузера, звільнити місце або скоротити файл.'));
+        } else {
+          reject(e);
+        }
+      }
+    });
+  }
+  function lsDelete(key, shared){
+    return new Promise((resolve, reject)=>{
+      try{
+        localStorage.removeItem(lsKey(key, shared));
+        resolve({ key, deleted: true, shared: !!shared });
+      }catch(e){ reject(e); }
+    });
+  }
+  function lsList(prefix, shared){
+    return new Promise((resolve, reject)=>{
+      try{
+        const base = LS_PREFIX + (shared ? 'shared__' : '');
+        const fullPrefix = base + (prefix || '');
+        const keys = [];
+        for(let i=0; i<localStorage.length; i++){
+          const k = localStorage.key(i);
+          if(k && k.indexOf(fullPrefix) === 0) keys.push(k.slice(base.length));
+        }
+        resolve({ keys, prefix, shared: !!shared });
+      }catch(e){ reject(e); }
+    });
+  }
+
+  if(hasNative){
+    return {
+      isNative: true,
+      get: (k, s)=>window.storage.get(k, s),
+      set: (k, v, s)=>window.storage.set(k, v, s),
+      delete: (k, s)=>window.storage.delete(k, s),
+      list: (p, s)=>window.storage.list(p, s)
+    };
+  }
+  console.info('AppStorage: window.storage недоступний — використовую localStorage браузера (дані зберігаються лише в цьому браузері на цьому пристрої).');
+  return { isNative: false, get: lsGet, set: lsSet, delete: lsDelete, list: lsList };
+})();
+
+const WEEKDAY_KEYS = ['Пн','Вт','Ср','Чт','Пт'];
+const MONTH_NAMES = ['Січень','Лютий','Березень','Квітень','Травень','Червень','Липень','Серпень','Вересень','Жовтень','Листопад','Грудень'];
+const DOW_LABELS = ['Пн','Вт','Ср','Чт','Пт','Сб','Нд'];
+
+const now = new Date();
+const defaultStartYear = now.getFullYear();
+
+const SEED_STATE = {"schedule":{"Пн":["","","","",""],"Вт":["","","","",""],"Ср":["","","","",""],"Чт":["","","","",""],"Пт":["","","","",""]},"plans":{},"calendarized":{},"birthdays":[],"textbooks":{},"quarterPlans":[],"holidayPlans":[],"journal":{},"documents":[],"classTeacher":{"className":"","cabinet":"","roster":[],"events":[]},"extracurricular":{"olympiad":[],"man":[],"contest":[]},"safety":{"briefings":[],"journalEntries":[],"journalMarks":{},"journalSessions":[]},"attestation":{"certificates":[],"awards":[]},"settings":{"academicYear":"","startDate":"","endDate":"","excludedDates":[],"excludedWeekdays":[],"holidays":{"autumn":{"start":"","end":""},"winter":{"start":"","end":""},"spring":{"start":"","end":""}}}};
+
+let state = {
+  schedule: { 'Пн':['','','','',''], 'Вт':['','','','',''], 'Ср':['','','','',''], 'Чт':['','','','',''], 'Пт':['','','','',''] },
+  plans: {},
+  calendarized: {},
+  birthdays: [],
+  textbooks: {},
+  quarterPlans: [],
+  holidayPlans: [],
+  journal: {},
+  documents: [],
+  classTeacher: { className: '', cabinet: '', roster: [], events: [] },
+  extracurricular: { olympiad: [], man: [], contest: [] },
+  safety: { briefings: [], journalEntries: [], journalMarks: {}, journalSessions: [] },
+  attestation: { certificates: [], awards: [] },
+  settings: {
+    academicYear: '',
+    startDate: `${defaultStartYear}-09-01`,
+    endDate: `${defaultStartYear+1}-05-31`,
+    excludedDates: [],
+    excludedWeekdays: [],
+    holidays: {
+      autumn: { start:'', end:'' },
+      winter: { start:'', end:'' },
+      spring: { start:'', end:'' }
+    }
+  }
+};
+
+let view = { year: defaultStartYear, month: 8 }; // вересень = 8
+let calendarMode = 'month'; // 'month' | 'year'
+let stateLoaded = false;
+
+function pad(n){ return String(n).padStart(2,'0'); }
+function fmtDate(d){ return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; }
+function weekdayKeyFor(date){ const m={1:'Пн',2:'Вт',3:'Ср',4:'Чт',5:'Пт'}; return m[date.getDay()] || null; }
+function todayStr(){ return fmtDate(new Date()); }
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(showToast._tm);
+  showToast._tm = setTimeout(()=>t.classList.remove('show'), 2200);
+}
+
+/* ====================== ЗБЕРЕЖЕННЯ ====================== */
+let saveStateTimer = null;
+let saveStatePending = false;
+let pendingSaveResolvers = [];
+
+async function writeStateWithRetry(payload, maxAttempts){
+  maxAttempts = maxAttempts || 4;
+  let lastErr = null;
+  for(let attempt=1; attempt<=maxAttempts; attempt++){
+    try{
+      await AppStorage.set('planner-state', payload);
+      return { ok: true };
+    }catch(e){
+      lastErr = e;
+      console.error(`Спроба збереження ${attempt}/${maxAttempts} не вдалась`, e);
+      if(attempt < maxAttempts){
+        const delay = 800 * Math.pow(2, attempt-1); // 0.8s, 1.6s, 3.2s...
+        await new Promise(r=>setTimeout(r, delay));
+      }
+    }
+  }
+  console.error('Усі спроби збереження вичерпано', lastErr);
+  return { ok: false, error: lastErr };
+}
+
+function saveState(){
+  return new Promise((resolve)=>{
+    pendingSaveResolvers.push(resolve);
+    if(saveStateTimer) clearTimeout(saveStateTimer);
+    saveStateTimer = setTimeout(async ()=>{
+      const resolvers = pendingSaveResolvers;
+      pendingSaveResolvers = [];
+      saveStateTimer = null;
+      const payload = JSON.stringify(state);
+      const result = await writeStateWithRetry(payload);
+      if(!result.ok && !saveStatePending){
+        saveStatePending = true;
+        const detail = result.error && result.error.message ? result.error.message : 'невідома помилка';
+        showToast(`Не вдалося зберегти зміни: ${detail}`);
+        setTimeout(()=>{ saveStatePending = false; }, 8000);
+      }
+      resolvers.forEach(r=>r());
+    }, 300);
+  });
+}
+function applyLoadedState(loaded){
+  state = Object.assign(state, loaded);
+  if(!state.settings) state.settings = { academicYear: '', startDate: `${defaultStartYear}-09-01`, endDate: `${defaultStartYear+1}-05-31`, excludedDates: [], excludedWeekdays: [], holidays:{autumn:{start:'',end:''},winter:{start:'',end:''},spring:{start:'',end:''}} };
+  if(typeof state.settings.academicYear === 'undefined') state.settings.academicYear = '';
+  if(!Array.isArray(state.settings.excludedWeekdays)) state.settings.excludedWeekdays = [];
+  if(!state.settings.startDate) state.settings.startDate = `${defaultStartYear}-09-01`;
+  if(!state.settings.endDate) state.settings.endDate = `${defaultStartYear+1}-05-31`;
+  if(!state.settings.holidays) state.settings.holidays = { autumn:{start:'',end:''}, spring:{start:'',end:''} };
+  if(!state.settings.holidays.autumn) state.settings.holidays.autumn = {start:'',end:''};
+  if(!state.settings.holidays.spring) state.settings.holidays.spring = {start:'',end:''};
+  if(!state.settings.holidays.winter) state.settings.holidays.winter = {start:'',end:''};
+  if(!state.textbooks || typeof state.textbooks !== 'object') state.textbooks = {};
+  if(!Array.isArray(state.quarterPlans)) state.quarterPlans = [];
+  if(!Array.isArray(state.holidayPlans)) state.holidayPlans = [];
+  if(!state.journal || typeof state.journal !== 'object') state.journal = {};
+  if(!Array.isArray(state.documents)) state.documents = [];
+  if(!state.classTeacher || typeof state.classTeacher !== 'object') state.classTeacher = { className:'', cabinet:'', roster:[], events:[] };
+  if(!Array.isArray(state.classTeacher.roster)) state.classTeacher.roster = [];
+  if(!Array.isArray(state.classTeacher.events)) state.classTeacher.events = [];
+  if(!state.extracurricular || typeof state.extracurricular !== 'object') state.extracurricular = { olympiad:[], man:[], contest:[] };
+  ['olympiad','man','contest'].forEach(cat=>{ if(!Array.isArray(state.extracurricular[cat])) state.extracurricular[cat] = []; });
+  if(!state.safety || typeof state.safety !== 'object') state.safety = { briefings:[], journalEntries:[], journalMarks:{}, journalSessions:[] };
+  if(!Array.isArray(state.safety.briefings)) state.safety.briefings = [];
+  if(!Array.isArray(state.safety.journalEntries)) state.safety.journalEntries = [];
+  if(!state.safety.journalMarks || typeof state.safety.journalMarks !== 'object') state.safety.journalMarks = {};
+  if(!Array.isArray(state.safety.journalSessions)) state.safety.journalSessions = [];
+  if(!state.attestation || typeof state.attestation !== 'object') state.attestation = { certificates:[], awards:[] };
+  if(!Array.isArray(state.attestation.certificates)) state.attestation.certificates = [];
+  if(!Array.isArray(state.attestation.awards)) state.attestation.awards = [];
+  const sd = new Date(state.settings.startDate);
+  if(!isNaN(sd)) view = { year: sd.getFullYear(), month: sd.getMonth() };
+}
+
+async function loadState(){
+  try{
+    const res = await AppStorage.get('planner-state');
+    if(res && res.value){
+      applyLoadedState(JSON.parse(res.value));
+    } else if(typeof SEED_STATE !== 'undefined'){
+      /* сховище порожнє — підставляємо початкові дані з бази */
+      applyLoadedState(JSON.parse(JSON.stringify(SEED_STATE)));
+    }
+  }catch(e){
+    /* ключа ще немає — підставляємо початкові дані з бази, якщо є */
+    if(typeof SEED_STATE !== 'undefined'){
+      try{ applyLoadedState(JSON.parse(JSON.stringify(SEED_STATE))); }catch(e2){ /* ігноруємо */ }
+    }
+  }
+  normalizePlans();
+  stateLoaded = true;
+}
+
+function textbookKey(subject){
+  const slug = normalizeText(subject).replace(/[^a-zа-яґєії0-9]+/gi,'_').replace(/^_+|_+$/g,'').slice(0,120);
+  return `textbook_${slug || 'subject'}`;
+}
+
+function normalizePlans(){
+  // старий формат: plans[subject] = ["тема1","тема2"] -> новий: {topics:[...], days:[...], classLetters:[...], gradeNum:''}
+  Object.keys(state.plans).forEach(subj=>{
+    const v = state.plans[subj];
+    if(Array.isArray(v)){
+      state.plans[subj] = { topics: v, days: [...WEEKDAY_KEYS], classLetters: [], gradeNum: '' };
+    } else if(v && typeof v === 'object'){
+      if(!Array.isArray(v.topics)) v.topics = [];
+      if(!Array.isArray(v.days) || !v.days.length) v.days = [...WEEKDAY_KEYS];
+      if(!Array.isArray(v.classLetters)) v.classLetters = [];
+      if(typeof v.gradeNum !== 'string') v.gradeNum = '';
+    } else {
+      state.plans[subj] = { topics: [], days: [...WEEKDAY_KEYS], classLetters: [], gradeNum: '' };
+    }
+  });
+}
+
+function getPlan(subject){
+  if(!state.plans[subject]) state.plans[subject] = { topics: [], days: [...WEEKDAY_KEYS], classLetters: [], gradeNum: '' };
+  return state.plans[subject];
+}
+
+function getAllExcludedDates(){
+  const set = new Set(state.settings.excludedDates || []);
+  ['autumn','winter','spring'].forEach(key=>{
+    const range = state.settings.holidays && state.settings.holidays[key];
+    if(range && range.start && range.end){
+      let d = new Date(range.start + 'T00:00:00');
+      const end = new Date(range.end + 'T00:00:00');
+      let guard = 0;
+      while(d <= end && guard < 200){
+        set.add(fmtDate(d));
+        d.setDate(d.getDate()+1);
+        guard++;
+      }
+    }
+  });
+  return set;
+}
+
+/* ====================== НАВІГАЦІЯ ВКЛАДКАМИ ====================== */
+const TITLES = {
+  calendar: ['Календар', 'Навчальний рік починається з вересня. Натисніть на день, щоб побачити або відредагувати уроки.'],
+  schedule: ['Розклад уроків', 'Вкажіть предмети для кожного дня тижня — це основа для календаризації.'],
+  plans: ['Календарне планування', 'Завантажте теми з календарно-тематичного плану та розподіліть їх по днях.'],
+  periods: ['Плани на чверть і канікули', 'Занесіть план роботи напередодні початку кожної чверті чи канікул.'],
+  generator: ['Розробка уроку', 'Введіть тему — отримаєте готовий промт для будь-якого ІІ.'],
+  birthdays: ['Дні народження', 'Додайте дати, щоб отримувати нагадування в календарі.'],
+  journal: ['Електронний журнал', 'Оберіть предмет, введіть список класу і виставляйте оцінки за датами уроків.'],
+  classTeacher: ['Класний керівник', 'Склад класу та виховна робота.'],
+  documents: ['Документи', 'Реєстр документів учителя: що готово, що ще потрібно подати.'],
+  extracurricular: ['Позакласна робота', 'Олімпіади, МАН та конкурси — дати відображаються червоним у календарі.'],
+  safety: ['ТБ і ОБЖ', 'Інструктажі з техніки безпеки та журнал їх проведення.'],
+  attestation: ['Атестація', 'Сертифікати та грамоти для атестаційної справи.']
+};
+
+function setTab(tab){
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.tab===tab));
+  document.getElementById('topbarTitle').textContent = TITLES[tab][0];
+  document.getElementById('topbarSub').textContent = TITLES[tab][1];
+  const renderers = { calendar: renderCalendarTab, schedule: renderScheduleTab, plans: renderPlansTab, periods: renderPeriodsTab, generator: renderGeneratorTab, birthdays: renderBirthdaysTab, journal: renderJournalTab, classTeacher: renderClassTeacherTab, documents: renderDocumentsTab, extracurricular: renderExtracurricularTab, safety: renderSafetyTab, attestation: renderAttestationTab };
+  renderers[tab]();
+  currentTab = tab;
+}
+let currentTab = 'calendar';
+let generatorPrefill = null; // {subject, topic, letters} — передається з календаря
+let currentGeneratorLetters = [];
+
+document.querySelectorAll('.tab-btn').forEach(b=>{
+  b.addEventListener('click', ()=>setTab(b.dataset.tab));
+});
+
+/* ====================== РЕЗЕРВНА КОПІЯ (ЕКСПОРТ / ІМПОРТ) ======================
+   Увесь стан програми зберігається в браузерному/платформному сховищі, прив'язаному
+   до конкретного місця запуску файлу — а не до самого HTML-файлу. Щоб дані не губились
+   при заміні файлу, зміні браузера чи скиданні сховища, можна вручну зберегти повний
+   знімок стану у власний .json-файл і за потреби відновити з нього. */
+function downloadBackupFile(){
+  try{
+    const payload = JSON.stringify(state, null, 2);
+    const blob = new Blob([payload], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const d = new Date();
+    const stamp = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}`;
+    a.href = url;
+    a.download = `teacher-planner-backup-${stamp}.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url), 2000);
+    showToast('Резервну копію збережено — перевірте завантаження браузера');
+  }catch(e){
+    console.error('Не вдалося сформувати резервну копію', e);
+    showToast('Не вдалося сформувати резервну копію: ' + (e && e.message ? e.message : 'невідома помилка'));
+  }
+}
+
+let pendingBackupFile = null;
+document.getElementById('backupExportBtn').onclick = downloadBackupFile;
+document.getElementById('backupImportBtn').onclick = ()=>{
+  document.getElementById('backupImportInput').click();
+};
+document.getElementById('backupImportInput').addEventListener('change', (e)=>{
+  const file = e.target.files && e.target.files[0];
+  e.target.value = '';
+  if(!file) return;
+  pendingBackupFile = file;
+  document.getElementById('backupConfirmOverlay').classList.remove('hidden');
+});
+document.getElementById('backupConfirmCancel').onclick = ()=>{
+  pendingBackupFile = null;
+  document.getElementById('backupConfirmOverlay').classList.add('hidden');
+};
+document.getElementById('backupConfirmOk').onclick = ()=>{
+  const file = pendingBackupFile;
+  document.getElementById('backupConfirmOverlay').classList.add('hidden');
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    try{
+      const parsed = JSON.parse(reader.result);
+      if(!parsed || typeof parsed !== 'object') throw new Error('Файл не містить коректних даних');
+      state = {
+        schedule: { 'Пн':['','','','',''], 'Вт':['','','','',''], 'Ср':['','','','',''], 'Чт':['','','','',''], 'Пт':['','','','',''] },
+        plans: {}, calendarized: {}, birthdays: [], textbooks: {}, quarterPlans: [], holidayPlans: [], journal: {}, documents: [],
+        classTeacher: { className: '', cabinet: '', roster: [], events: [] },
+        extracurricular: { olympiad: [], man: [], contest: [] },
+        safety: { briefings: [], journalEntries: [], journalMarks: {}, journalSessions: [] },
+        attestation: { certificates: [], awards: [] },
+        settings: { academicYear: '', startDate: `${defaultStartYear}-09-01`, endDate: `${defaultStartYear+1}-05-31`, excludedDates: [], excludedWeekdays: [], holidays: { autumn:{start:'',end:''}, winter:{start:'',end:''}, spring:{start:'',end:''} } }
+      };
+      applyLoadedState(parsed);
+      saveState();
+      setTab(currentTab);
+      showToast('Дані відновлено з резервної копії');
+    }catch(err){
+      console.error('Не вдалося відновити з файлу', err);
+      showToast('Не вдалося прочитати файл резервної копії: ' + (err && err.message ? err.message : 'невідома помилка'));
+    }finally{
+      pendingBackupFile = null;
+    }
+  };
+  reader.onerror = ()=>{
+    showToast('Не вдалося прочитати файл');
+    pendingBackupFile = null;
+  };
+  reader.readAsText(file);
+};
+
+/* ====================== ПОПЕРЕДЖЕННЯ ПРИ ЗАКРИТТІ ВКЛАДКИ ======================
+   Дані автозберігаються в сховище браузера, але це сховище прив'язане до конкретного
+   браузера/пристрою і може бути втрачене (скидання кешу, інший пристрій тощо).
+   Якщо в програмі є хоч якісь введені дані, при спробі закрити чи перезавантажити
+   вкладку браузер запитає підтвердження — це нагадування вчасно зробити резервну копію. */
+function hasMeaningfulData(){
+  const s = state;
+  if(Object.values(s.schedule).some(day=>day.some(cell=>cell && cell.trim()))) return true;
+  if(Object.keys(s.plans).length) return true;
+  if(Object.keys(s.calendarized).length) return true;
+  if(Object.keys(s.journal).length) return true;
+  if(Array.isArray(s.birthdays) && s.birthdays.length) return true;
+  if(Array.isArray(s.documents) && s.documents.length) return true;
+  if(s.classTeacher && (s.classTeacher.className || (s.classTeacher.roster && s.classTeacher.roster.length))) return true;
+  if(s.extracurricular && (s.extracurricular.olympiad.length || s.extracurricular.man.length || s.extracurricular.contest.length)) return true;
+  if(s.safety && (s.safety.journalSessions.length || s.safety.briefings.length)) return true;
+  if(s.attestation && (s.attestation.certificates.length || s.attestation.awards.length)) return true;
+  return false;
+}
+
+window.addEventListener('beforeunload', function(e){
+  if(hasMeaningfulData()){
+    e.preventDefault();
+    e.returnValue = '';
+    return '';
+  }
+});
+
+/* ====================== КАЛЕНДАР ====================== */
+function normalizeText(s){
+  return String(s||'').trim().toLowerCase().replace(/\s+/g,' ');
+}
+
+function getSubjectsInSchedule(){
+  const set = new Set();
+  WEEKDAY_KEYS.forEach(k=> state.schedule[k].forEach(s=>{ if(s && s.trim()) set.add(s.trim()); }));
+  Object.keys(state.plans).forEach(s=>set.add(s));
+  return Array.from(set).sort((a,b)=>a.localeCompare(b,'uk'));
+}
+
+function lessonsForDate(dateObj){
+  const wk = weekdayKeyFor(dateObj);
+  if(!wk) return [];
+  const dateStr = fmtDate(dateObj);
+  const scheduled = state.schedule[wk].map((subj,i)=>({subj: subj.trim(), period:i+1})).filter(x=>x.subj);
+  const assigned = state.calendarized[dateStr] || [];
+  return scheduled.map(sc=>{
+    const match = assigned.find(a=>a.period===sc.period && normalizeText(a.subject)===normalizeText(sc.subj));
+    return { subject: sc.subj, period: sc.period, topic: match ? match.topic : '', letters: match ? (match.letters||[]) : [], gradeNum: match ? (match.gradeNum||'') : '' };
+  });
+}
+
+function birthdaysForDate(dateObj){
+  const mmdd = `${pad(dateObj.getMonth()+1)}-${pad(dateObj.getDate())}`;
+  return state.birthdays.filter(b=>b.date && b.date.slice(5)===mmdd);
+}
+
+const EXTRACURRICULAR_CATEGORIES = { olympiad: 'Олімпіада', man: 'МАН', contest: 'Конкурс' };
+
+function extracurricularForDate(dateObj){
+  const dateStr = fmtDate(dateObj);
+  const result = [];
+  Object.keys(EXTRACURRICULAR_CATEGORIES).forEach(cat=>{
+    (state.extracurricular[cat]||[]).forEach(item=>{
+      if(item.date === dateStr) result.push(Object.assign({category:cat}, item));
+    });
+  });
+  return result;
+}
+
+function getUpcomingExtracurricular(withinDays){
+  const today = new Date(); today.setHours(0,0,0,0);
+  const items = [];
+  Object.keys(EXTRACURRICULAR_CATEGORIES).forEach(cat=>{
+    (state.extracurricular[cat]||[]).forEach(item=>{
+      if(!item.date) return;
+      const d = new Date(item.date+'T00:00:00');
+      const daysUntil = Math.round((d-today)/86400000);
+      if(daysUntil>=0 && daysUntil<=withinDays){
+        items.push({ category:cat, title:item.title, date:item.date, daysUntil, displayDate: item.date.split('-').reverse().join('.') });
+      }
+    });
+  });
+  return items.sort((a,b)=>a.daysUntil-b.daysUntil);
+}
+
+function schoolYearMonths(){
+  // повертає масив {year, month} для 12 місяців навчального року, починаючи з місяця стартової дати
+  const sd = new Date(state.settings.startDate);
+  const startMonth = isNaN(sd) ? 8 : sd.getMonth();
+  const startYear = isNaN(sd) ? defaultStartYear : sd.getFullYear();
+  const months = [];
+  for(let i=0;i<12;i++){
+    let m = startMonth + i;
+    let y = startYear + Math.floor(m/12);
+    m = m % 12;
+    months.push({year:y, month:m});
+  }
+  return months;
+}
+
+function renderCalendarTab(){
+  const c = document.getElementById('content');
+
+  const monthOptions = MONTH_NAMES.map((name,i)=>`<option value="${i}" ${i===view.month?'selected':''}>${name}</option>`).join('');
+  const yearsRange = [];
+  for(let y=defaultStartYear-1; y<=defaultStartYear+2; y++) yearsRange.push(y);
+  const yearOptions = yearsRange.map(y=>`<option value="${y}" ${y===view.year?'selected':''}>${y}</option>`).join('');
+
+  const headerControls = `
+    <div class="cal-head">
+      <div class="cal-nav">
+        <button class="btn btn-ghost btn-icon" id="prevMonth" aria-label="Попередній місяць" ${calendarMode==='year'?'disabled':''}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+        <select id="monthSelect" aria-label="Обрати місяць" ${calendarMode==='year'?'disabled':''}>${monthOptions}</select>
+        <select id="yearSelect" aria-label="Обрати рік" ${calendarMode==='year'?'disabled':''}>${yearOptions}</select>
+        <button class="btn btn-ghost btn-icon" id="nextMonth" aria-label="Наступний місяць" ${calendarMode==='year'?'disabled':''}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+        </button>
+      </div>
+      <div class="row" style="gap:8px;">
+        <button class="btn ${calendarMode==='year'?'btn-primary':'btn-ghost'}" id="toggleYearView">${calendarMode==='year'?'До місяця':'Весь навчальний рік'}</button>
+        <button class="btn btn-ghost" id="gotoStart">До вересня</button>
+        <button class="btn btn-ghost" id="gotoEnd">Кінець навчального року</button>
+      </div>
+    </div>`;
+
+  if(calendarMode === 'year'){
+    const months = schoolYearMonths();
+    c.innerHTML = `
+      <div class="card">
+        ${headerControls}
+        <div class="year-grid">
+          ${months.map(m=>renderMiniMonth(m.year, m.month)).join('')}
+        </div>
+      </div>
+      ${renderUpcomingBirthdaysWidget()}
+    `;
+    c.querySelectorAll('.mini-month').forEach(el=>{
+      el.addEventListener('click', ()=>{
+        view = { year: parseInt(el.dataset.year), month: parseInt(el.dataset.month) };
+        calendarMode = 'month';
+        renderCalendarTab();
+      });
+    });
+  } else {
+    const monthLabel = `${MONTH_NAMES[view.month]} ${view.year}`;
+    const first = new Date(view.year, view.month, 1);
+    const startOffset = (first.getDay()+6)%7; // понеділок = 0
+    const daysInMonth = new Date(view.year, view.month+1, 0).getDate();
+
+    let cells = '';
+    for(let i=0;i<startOffset;i++) cells += `<div class="cal-cell empty"></div>`;
+    for(let d=1; d<=daysInMonth; d++){
+      const dateObj = new Date(view.year, view.month, d);
+      const dateStr = fmtDate(dateObj);
+      const isWeekend = [0,6].includes(dateObj.getDay());
+      const isToday = dateStr === todayStr();
+      const lessons = isWeekend ? [] : lessonsForDate(dateObj);
+      const bdays = birthdaysForDate(dateObj);
+      const ecEvents = extracurricularForDate(dateObj);
+      const lessonHtml = lessons.slice(0,3).map(l=>
+        `<div class="cal-lesson ${l.topic?'has-topic':''}" title="${escapeHtml(l.subject + (l.topic? ': '+l.topic:''))}">${escapeHtml(l.subject)}</div>`
+      ).join('') + (lessons.length>3 ? `<div class="cal-lesson">+${lessons.length-3} ще</div>` : '');
+      const ecHtml = ecEvents.slice(0,2).map(ev=>
+        `<div class="cal-lesson cal-lesson-danger" title="${escapeHtml(EXTRACURRICULAR_CATEGORIES[ev.category]+': '+ev.title)}">${escapeHtml(EXTRACURRICULAR_CATEGORIES[ev.category])}: ${escapeHtml(ev.title)}</div>`
+      ).join('');
+      cells += `
+        <button class="cal-cell ${isWeekend?'weekend':''} ${isToday?'today':''}" data-date="${dateStr}" aria-label="Відкрити день ${d} ${MONTH_NAMES[view.month]}">
+          <div class="cal-daynum"><span>${d}</span><span class="cal-daynum-badges">${bdays.length? `<svg class="cake-badge" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21v-6a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v6"/><path d="M12 11V7"/><path d="M4 17h16"/></svg>`:''}${ecEvents.length? `<svg class="ec-badge" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M9 13.5 7 22l5-3 5 3-2-8.5"/></svg>`:''}</span></div>
+          ${ecHtml}
+          ${lessonHtml}
+        </button>`;
+    }
+
+    c.innerHTML = `
+      <div class="card">
+        ${headerControls}
+        <div class="cal-grid">
+          ${DOW_LABELS.map(l=>`<div class="cal-dow">${l}</div>`).join('')}
+          ${cells}
+        </div>
+        <div class="legend">
+          <span><span class="dot" style="background:#EAF2F0;border:1px solid var(--teal)"></span>Урок за розкладом</span>
+          <span><span class="dot" style="background:var(--teal)"></span>Тема з плану призначена</span>
+          <span><svg class="cake-badge" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 21v-6a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v6"/></svg>День народження</span>
+          <span><svg class="ec-badge" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="6"/><path d="M9 13.5 7 22l5-3 5 3-2-8.5"/></svg>Олімпіада / МАН / Конкурс</span>
+        </div>
+      </div>
+      ${renderUpcomingBirthdaysWidget()}
+      ${renderUpcomingExtracurricularWidget()}
+    `;
+    c.querySelectorAll('.cal-cell[data-date]').forEach(el=>{
+      el.addEventListener('click', ()=>openDayModal(el.dataset.date));
+    });
+  }
+
+  document.getElementById('toggleYearView').onclick = ()=>{
+    calendarMode = calendarMode==='year' ? 'month' : 'year';
+    renderCalendarTab();
+  };
+  document.getElementById('gotoStart').onclick = ()=>{
+    const sd=new Date(state.settings.startDate);
+    view={year:sd.getFullYear(), month:sd.getMonth()};
+    calendarMode = 'month';
+    renderCalendarTab();
+  };
+  document.getElementById('gotoEnd').onclick = ()=>{
+    const ed=new Date(state.settings.endDate || state.settings.startDate);
+    if(!isNaN(ed)){
+      view={year:ed.getFullYear(), month:ed.getMonth()};
+      calendarMode = 'month';
+      renderCalendarTab();
+    }
+  };
+  if(calendarMode !== 'year'){
+    document.getElementById('prevMonth').onclick = ()=>{ view.month--; if(view.month<0){view.month=11; view.year--;} renderCalendarTab(); };
+    document.getElementById('nextMonth').onclick = ()=>{ view.month++; if(view.month>11){view.month=0; view.year++;} renderCalendarTab(); };
+    document.getElementById('monthSelect').onchange = (e)=>{ view.month = parseInt(e.target.value); renderCalendarTab(); };
+    document.getElementById('yearSelect').onchange = (e)=>{ view.year = parseInt(e.target.value); renderCalendarTab(); };
+  }
+}
+
+function renderMiniMonth(year, month){
+  const first = new Date(year, month, 1);
+  const startOffset = (first.getDay()+6)%7;
+  const daysInMonth = new Date(year, month+1, 0).getDate();
+  let cells = '';
+  for(let i=0;i<startOffset;i++) cells += `<span class="mini-cell empty"></span>`;
+  for(let d=1; d<=daysInMonth; d++){
+    const dateObj = new Date(year, month, d);
+    const isWeekend = [0,6].includes(dateObj.getDay());
+    const hasLessons = !isWeekend && lessonsForDate(dateObj).length>0;
+    const hasBday = birthdaysForDate(dateObj).length>0;
+    cells += `<span class="mini-cell ${isWeekend?'weekend':''} ${hasLessons?'has-data':''} ${hasBday?'has-bday':''}">${d}</span>`;
+  }
+  return `
+    <button class="mini-month" data-year="${year}" data-month="${month}" aria-label="Перейти до ${MONTH_NAMES[month]} ${year}">
+      <div class="mini-month-title serif">${MONTH_NAMES[month]} ${year}</div>
+      <div class="mini-grid">${cells}</div>
+    </button>`;
+}
+
+function renderUpcomingBirthdaysWidget(){
+  const upcoming = getUpcomingBirthdays(14);
+  if(!upcoming.length) return '';
+  return `<div class="card">
+    <h3>Найближчі дні народження</h3>
+    ${upcoming.map(u=>`
+      <div class="upcoming-item">
+        <span class="upcoming-badge">${u.daysUntil===0?'сьогодні':u.daysUntil+' дн.'}</span>
+        <span>${escapeHtml(u.name)}</span>
+        <span class="bday-date" style="margin-left:auto">${u.displayDate}</span>
+      </div>`).join('')}
+  </div>`;
+}
+
+function renderUpcomingExtracurricularWidget(){
+  const upcoming = getUpcomingExtracurricular(21);
+  if(!upcoming.length) return '';
+  return `<div class="card">
+    <h3 style="color:var(--danger)">Найближчі олімпіади, МАН і конкурси</h3>
+    ${upcoming.map(u=>`
+      <div class="upcoming-item">
+        <span class="upcoming-badge upcoming-badge-danger">${u.daysUntil===0?'сьогодні':u.daysUntil+' дн.'}</span>
+        <span>${escapeHtml(EXTRACURRICULAR_CATEGORIES[u.category])}: ${escapeHtml(u.title)}</span>
+        <span class="bday-date" style="margin-left:auto; color:var(--danger)">${u.displayDate}</span>
+      </div>`).join('')}
+  </div>`;
+}
+
+function getUpcomingBirthdays(withinDays){
+  const today = new Date(); today.setHours(0,0,0,0);
+  return state.birthdays.map(b=>{
+    const [,mm,dd] = b.date.split('-');
+    let next = new Date(today.getFullYear(), parseInt(mm)-1, parseInt(dd));
+    if(next < today) next = new Date(today.getFullYear()+1, parseInt(mm)-1, parseInt(dd));
+    const daysUntil = Math.round((next-today)/86400000);
+    return { name:b.name, daysUntil, displayDate: `${dd}.${mm}` };
+  }).filter(u=>u.daysUntil<=withinDays).sort((a,b)=>a.daysUntil-b.daysUntil);
+}
+
+function openDayModal(dateStr){
+  const dateObj = new Date(dateStr + 'T00:00:00');
+  const lessons = lessonsForDate(dateObj);
+  const bdays = birthdaysForDate(dateObj);
+  const ecEvents = extracurricularForDate(dateObj);
+  const weekday = weekdayKeyFor(dateObj);
+  const overlay = document.getElementById('dayOverlay');
+  const modal = document.getElementById('dayModal');
+
+  const dayLabel = `${dateObj.getDate()} ${MONTH_NAMES[dateObj.getMonth()].toLowerCase()} ${dateObj.getFullYear()}`;
+
+  modal.innerHTML = `
+    <div class="modal-head">
+      <div>
+        <h2 class="serif" style="margin:0">${dayLabel}</h2>
+        <p style="margin:2px 0 0; color:var(--muted); font-size:13px;">${weekday ? weekday+' • навчальний день' : 'вихідний'}</p>
+      </div>
+      <button class="close-x" id="closeModal" aria-label="Закрити">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    ${ecEvents.length ? `<div class="modal-ec-alert">${ecEvents.map(ev=>`<div>🏆 ${escapeHtml(EXTRACURRICULAR_CATEGORIES[ev.category])}: ${escapeHtml(ev.title)}</div>`).join('')}</div>` : ''}
+    ${lessons.length ? lessons.map((l,i)=>`
+      <div class="modal-lesson-row">
+        <span class="subj">${i+1}. ${escapeHtml(l.subject)}${l.letters && l.letters.length ? ` <span class="dated-letters">(${l.letters.map(x=>`${l.gradeNum||'?'}-${x}`).join(', ')})</span>` : (l.gradeNum ? ` <span class="dated-letters">(${l.gradeNum} клас)</span>` : '')}</span>
+        <input type="text" data-period="${l.period}" data-subject="${escapeHtml(l.subject)}" value="${escapeHtml(l.topic)}" placeholder="Тема уроку...">
+        <button type="button" class="btn btn-ghost btn-icon gen-lesson-btn" data-subject="${escapeHtml(l.subject)}" data-topic="${escapeHtml(l.topic)}" data-letters="${escapeHtml((l.letters||[]).join(','))}" data-grade="${escapeHtml(l.gradeNum||'')}" aria-label="Розробити урок «${escapeHtml(l.subject)}»" title="Розробити урок" ${l.topic?'':'disabled'}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        </button>
+      </div>`).join('') : `<p class="empty-hint">На цей день немає уроків за розкладом. Перевірте вкладку «Розклад».</p>`}
+    ${bdays.length ? `<h3 style="margin-top:16px">Дні народження</h3>${bdays.map(b=>`<div class="bday-item"><span class="bday-name">${escapeHtml(b.name)}</span></div>`).join('')}` : ''}
+    <div class="row" style="margin-top:16px; justify-content:flex-end;">
+      <button class="btn btn-ghost" id="addBdayFromDay">+ Додати день народження на цю дату</button>
+      <button class="btn btn-primary" id="saveDayModal">Зберегти</button>
+    </div>
+  `;
+  overlay.classList.remove('hidden');
+
+  document.getElementById('closeModal').onclick = closeDayModal;
+  overlay.onclick = (e)=>{ if(e.target===overlay) closeDayModal(); };
+  document.getElementById('addBdayFromDay').onclick = ()=>{
+    closeDayModal();
+    setTab('birthdays');
+    setTimeout(()=>{ document.getElementById('bdayDateInput').value = dateStr; document.getElementById('bdayNameInput').focus(); }, 50);
+  };
+  modal.querySelectorAll('.gen-lesson-btn').forEach(btn=>{
+    if(btn.disabled) return;
+    btn.onclick = ()=>{
+      generatorPrefill = { subject: btn.dataset.subject, topic: btn.dataset.topic, letters: btn.dataset.letters ? btn.dataset.letters.split(',').filter(Boolean) : [], gradeNum: btn.dataset.grade || '' };
+      closeDayModal();
+      setTab('generator');
+    };
+  });
+  document.getElementById('saveDayModal').onclick = ()=>{
+    modal.querySelectorAll('input[data-period]').forEach(inp=>{
+      const period = parseInt(inp.dataset.period);
+      const subject = inp.dataset.subject;
+      const topic = inp.value.trim();
+      if(!state.calendarized[dateStr]) state.calendarized[dateStr] = [];
+      let entry = state.calendarized[dateStr].find(e=>e.period===period && e.subject.toLowerCase()===subject.toLowerCase());
+      if(!entry){ entry = {subject, period, topic:''}; state.calendarized[dateStr].push(entry); }
+      entry.topic = topic;
+    });
+    saveState();
+    closeDayModal();
+    renderCalendarTab();
+    showToast('Збережено');
+  };
+}
+function closeDayModal(){ document.getElementById('dayOverlay').classList.add('hidden'); }
+
+/* ====================== РОЗКЛАД ====================== */
+function renderScheduleTab(){
+  const c = document.getElementById('content');
+  const periodCount = state.schedule['Пн'].length;
+  let rows = '';
+  for(let p=0; p<periodCount; p++){
+    rows += `<tr><td class="per-num">${p+1}</td>`;
+    WEEKDAY_KEYS.forEach(day=>{
+      rows += `<td><input type="text" data-day="${day}" data-period="${p}" value="${escapeHtml(state.schedule[day][p]||'')}" placeholder="—" aria-label="${day}, урок ${p+1}"></td>`;
+    });
+    rows += `</tr>`;
+  }
+
+  c.innerHTML = `
+    <div class="card">
+      <h2>Тижневий розклад</h2>
+      <div style="overflow-x:auto;">
+        <table class="sched">
+          <thead><tr><th></th>${WEEKDAY_KEYS.map(d=>`<th>${d}</th>`).join('')}</tr></thead>
+          <tbody id="schedBody">${rows}</tbody>
+        </table>
+      </div>
+      <div class="row" style="margin-top:14px;">
+        <button class="btn btn-ghost" id="addPeriod">+ Додати урок</button>
+        <button class="btn btn-ghost" id="removePeriod" ${periodCount<=1?'disabled':''}>− Прибрати останній</button>
+        <button class="btn btn-primary" id="saveSchedule" style="margin-left:auto">Зберегти розклад</button>
+      </div>
+      <p class="empty-hint">Введіть назви предметів для кожного дня. Ці дані використовуються для календаризації тем і відображення уроків у календарі.</p>
+    </div>
+  `;
+
+  document.getElementById('addPeriod').onclick = ()=>{
+    WEEKDAY_KEYS.forEach(d=>state.schedule[d].push(''));
+    saveState(); renderScheduleTab();
+  };
+  document.getElementById('removePeriod').onclick = ()=>{
+    WEEKDAY_KEYS.forEach(d=>state.schedule[d].pop());
+    saveState(); renderScheduleTab();
+  };
+  document.getElementById('saveSchedule').onclick = ()=>{
+    document.querySelectorAll('#schedBody input').forEach(inp=>{
+      state.schedule[inp.dataset.day][parseInt(inp.dataset.period)] = inp.value;
+    });
+    saveState();
+    showToast('Розклад збережено');
+  };
+  document.querySelectorAll('#schedBody input').forEach(inp=>{
+    inp.addEventListener('change', ()=>{
+      state.schedule[inp.dataset.day][parseInt(inp.dataset.period)] = inp.value;
+      saveState();
+    });
+  });
+}
+
+/* ====================== КАЛЕНДАРНЕ ПЛАНУВАННЯ ====================== */
+function renderPlansTab(){
+  const c = document.getElementById('content');
+  const subjects = getSubjectsInSchedule();
+
+  c.innerHTML = `
+    <div class="card">
+      <h2>Параметри календаризації</h2>
+      <div class="field" style="margin-bottom:14px;">
+        <label for="academicYearSelect">Навчальний рік</label>
+        <select id="academicYearSelect">
+          <option value="">— оберіть навчальний рік —</option>
+          ${Array.from({length:7}, (_,i)=>defaultStartYear-1+i).map(y=>`<option value="${y}" ${String(state.settings.academicYear)===String(y)?'selected':''}>${y}-${y+1} н.р.</option>`).join('')}
+        </select>
+        <p class="empty-hint" style="margin:4px 0 0;">Оберіть рік — дати початку і кінця навчального року підставляться автоматично нижче (можна відкоригувати вручну).</p>
+      </div>
+      <div class="row">
+        <div class="field">
+          <label for="startDateInput">Початок навчального року</label>
+          <input type="date" id="startDateInput" value="${state.settings.startDate}">
+        </div>
+        <div class="field">
+          <label for="endDateInput">Кінець навчального року</label>
+          <input type="date" id="endDateInput" value="${state.settings.endDate}">
+        </div>
+      </div>
+      <h3 style="margin-top:16px;">Канікули (виключаються з календаризації)</h3>
+      <div class="row">
+        <div class="field">
+          <label for="autumnStart">Осінні канікули — початок</label>
+          <input type="date" id="autumnStart" value="${state.settings.holidays.autumn.start}">
+        </div>
+        <div class="field">
+          <label for="autumnEnd">Осінні канікули — кінець</label>
+          <input type="date" id="autumnEnd" value="${state.settings.holidays.autumn.end}">
+        </div>
+      </div>
+      <div class="row" style="margin-top:10px;">
+        <div class="field">
+          <label for="winterStart">Зимові канікули — початок</label>
+          <input type="date" id="winterStart" value="${state.settings.holidays.winter.start}">
+        </div>
+        <div class="field">
+          <label for="winterEnd">Зимові канікули — кінець</label>
+          <input type="date" id="winterEnd" value="${state.settings.holidays.winter.end}">
+        </div>
+      </div>
+      <div class="row" style="margin-top:10px;">
+        <div class="field">
+          <label for="springStart">Весняні канікули — початок</label>
+          <input type="date" id="springStart" value="${state.settings.holidays.spring.start}">
+        </div>
+        <div class="field">
+          <label for="springEnd">Весняні канікули — кінець</label>
+          <input type="date" id="springEnd" value="${state.settings.holidays.spring.end}">
+        </div>
+      </div>
+      <div class="field" style="margin-top:14px;">
+        <label>Дні тижня без уроків (наприклад, методичний день)</label>
+        <div class="row" style="gap:6px;" id="excludedWeekdaysPills">
+          ${WEEKDAY_KEYS.map(day=>`<button type="button" class="day-pill ${state.settings.excludedWeekdays.includes(day)?'active':''}" data-day="${day}">${day}</button>`).join('')}
+        </div>
+        <p class="empty-hint" style="margin:6px 0 0;">Обрані дні тижня повністю виключаються з календаризації уроків протягом усього року.</p>
+      </div>
+      <button class="btn btn-primary" id="saveSettingsBtn" style="margin-top:14px;">Зберегти параметри</button>
+    </div>
+
+    <div class="card">
+      <h2>Новий предмет</h2>
+      <div class="row">
+        <input type="text" id="newSubjectInput" placeholder="Наприклад: Українська мова" style="flex:1; min-width:200px;">
+        <button class="btn btn-amber" id="addSubjectBtn">+ Додати предмет</button>
+      </div>
+    </div>
+
+    <div id="subjectsList"></div>
+  `;
+
+  document.querySelectorAll('#excludedWeekdaysPills .day-pill').forEach(pill=>{
+    pill.onclick = ()=>{
+      const day = pill.dataset.day;
+      if(state.settings.excludedWeekdays.includes(day)){
+        state.settings.excludedWeekdays = state.settings.excludedWeekdays.filter(d=>d!==day);
+      } else {
+        state.settings.excludedWeekdays.push(day);
+      }
+      pill.classList.toggle('active');
+      saveState();
+    };
+  });
+
+  const academicYearSelect = document.getElementById('academicYearSelect');
+  if(academicYearSelect){
+    academicYearSelect.onchange = ()=>{
+      const y = academicYearSelect.value;
+      state.settings.academicYear = y;
+      if(y){
+        document.getElementById('startDateInput').value = `${y}-09-01`;
+        document.getElementById('endDateInput').value = `${parseInt(y)+1}-05-31`;
+      }
+      saveSettingsFromInputs();
+    };
+  }
+
+  function saveSettingsFromInputs(){
+    const sd = document.getElementById('startDateInput').value;
+    const ed = document.getElementById('endDateInput').value;
+    if(sd) state.settings.startDate = sd;
+    if(ed) state.settings.endDate = ed;
+    state.settings.holidays.autumn = { start: document.getElementById('autumnStart').value, end: document.getElementById('autumnEnd').value };
+    state.settings.holidays.winter = { start: document.getElementById('winterStart').value, end: document.getElementById('winterEnd').value };
+    state.settings.holidays.spring = { start: document.getElementById('springStart').value, end: document.getElementById('springEnd').value };
+    saveState();
+  }
+
+  /* Автозбереження одразу під час введення (щоб дані не губились при перемиканні вкладки
+     без натискання кнопки «Зберегти параметри») — сама кнопка лишається для явного підтвердження. */
+  ['startDateInput','endDateInput','autumnStart','autumnEnd','winterStart','winterEnd','springStart','springEnd'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.addEventListener('change', saveSettingsFromInputs);
+  });
+
+  document.getElementById('saveSettingsBtn').onclick = ()=>{
+    saveSettingsFromInputs();
+    showToast('Параметри збережено');
+  };
+  document.getElementById('addSubjectBtn').onclick = ()=>{
+    const inp = document.getElementById('newSubjectInput');
+    const name = inp.value.trim();
+    if(!name) return;
+    getPlan(name);
+    inp.value = '';
+    saveState();
+    renderPlansTab();
+  };
+
+  renderSubjectsList(subjects);
+}
+
+function getCalendarizedListForSubject(subject){
+  const rows = [];
+  Object.keys(state.calendarized).sort().forEach(dateStr=>{
+    state.calendarized[dateStr].forEach(e=>{
+      if(normalizeText(e.subject)===normalizeText(subject)) rows.push({ date: dateStr, topic: e.topic, period: e.period, letters: e.letters||[], gradeNum: e.gradeNum||'' });
+    });
+  });
+  return rows;
+}
+
+function renderSubjectsList(subjects){
+  const allSubjects = Array.from(new Set([...subjects, ...Object.keys(state.plans)])).sort((a,b)=>a.localeCompare(b,'uk'));
+  const list = document.getElementById('subjectsList');
+  if(!allSubjects.length){
+    list.innerHTML = `<div class="card"><p class="empty-hint">Спочатку додайте предмети в розкладі або створіть предмет вище.</p></div>`;
+    return;
+  }
+  list.innerHTML = allSubjects.map(subj=>{
+    const plan = getPlan(subj);
+    const topics = plan.topics;
+    const dated = getCalendarizedListForSubject(subj);
+    const assignedCount = dated.filter(e=>e.topic).length;
+    const pct = topics.length ? Math.min(100, Math.round((assignedCount/topics.length)*100)) : 0;
+    const occursOn = WEEKDAY_KEYS.filter(day => state.schedule[day].some(s=>normalizeText(s)===normalizeText(subj)));
+    return `
+    <div class="card subject-card">
+      <div class="subject-card-head">
+        <h3>${escapeHtml(subj)}</h3>
+        <button type="button" class="btn btn-danger btn-icon delete-subject-btn" data-subject="${escapeHtml(subj)}" aria-label="Видалити предмет «${escapeHtml(subj)}»" title="Видалити предмет">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg>
+        </button>
+      </div>
+      ${!occursOn.length ? `<p class="warn-hint">Цього предмета немає в розкладі — відкрийте вкладку «Розклад» і впишіть точно таку саму назву в потрібні дні, інакше календаризація нічого не призначить.</p>` : `<p class="empty-hint" style="margin:0 0 10px;">У розкладі: ${occursOn.join(', ')}</p>`}
+
+      <div class="textbook-box">
+        ${state.textbooks[subj] ? `
+          <div class="textbook-info">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+            <span>Підручник: <strong>${escapeHtml(state.textbooks[subj].fileName)}</strong></span>
+            <button type="button" class="btn btn-danger btn-icon delete-textbook-btn" data-subject="${escapeHtml(subj)}" aria-label="Видалити підручник" title="Видалити підручник">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+            </button>
+          </div>
+          <p class="empty-hint" style="margin:4px 0 0;">Використовується для точніших розробок уроків з цієї теми.</p>
+        ` : `
+          <label class="btn btn-ghost file-upload-btn" style="margin:0;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+            Завантажити підручник (.pdf, .docx, .txt)
+            <input type="file" accept=".txt,.docx,.pdf" data-subject="${escapeHtml(subj)}" class="textbook-file-input" style="display:none;">
+          </label>
+          <p class="empty-hint" style="margin:4px 0 0;">За наявності підручника розробки уроків спиратимуться на його зміст.</p>
+        `}
+      </div>
+
+      <div class="row" style="margin-bottom:10px;">
+        <label class="btn btn-ghost file-upload-btn" style="margin:0;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>
+          Завантажити файл (.docx, .pdf, .txt, .csv)
+          <input type="file" accept=".txt,.csv,.docx,.pdf" data-subject="${escapeHtml(subj)}" class="plan-file-input" style="display:none;">
+        </label>
+        ${topics.length ? `<button type="button" class="btn btn-danger delete-plan-btn" data-subject="${escapeHtml(subj)}">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg>
+          Видалити завантажене
+        </button>` : ''}
+      </div>
+      <textarea data-subject="${escapeHtml(subj)}" placeholder="Вставте теми уроків — одна тема на рядок, у порядку календарно-тематичного плану, або завантажте файл вище">${topics.map(escapeHtml).join('\n')}</textarea>
+      <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+      <p class="empty-hint" style="margin:0 0 6px;">${topics.length} тем у плані · призначено на ${assignedCount} дат</p>
+      ${topics.length ? `
+      <div class="topics-list">
+        ${topics.map((t,i)=>`
+          <div class="topic-row">
+            <span class="topic-num mono">${i+1}</span>
+            <span class="topic-text">${escapeHtml(t)}</span>
+            <button type="button" class="topic-remove-btn" data-subject="${escapeHtml(subj)}" data-idx="${i}" aria-label="Видалити тему «${escapeHtml(t)}»" title="Видалити тему">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+            </button>
+          </div>`).join('')}
+      </div>` : ''}
+      <div class="field" style="margin-top:8px; margin-bottom:8px;">
+        <label>Клас і літери для цього предмета (за потреби — наприклад 3-А, 3-Б)</label>
+        <div class="row" style="gap:8px; align-items:center;">
+          <select class="grade-num-select" data-subject="${escapeHtml(subj)}" style="min-width:120px;">
+            <option value="">— без класу —</option>
+            ${Array.from({length:12}, (_,i)=>i+1).map(n=>`<option value="${n}" ${plan.gradeNum===String(n)?'selected':''}>${n} клас</option>`).join('')}
+          </select>
+          ${['А','Б','В','Г','Д'].map(l=>`<button type="button" class="day-pill class-letter-pill ${plan.classLetters.includes(l)?'active':''}" data-subject="${escapeHtml(subj)}" data-letter="${l}">${l}</button>`).join('')}
+        </div>
+        <p class="empty-hint" style="margin:4px 0 0;">${plan.gradeNum || plan.classLetters.length ? `Календаризовані уроки позначатимуться для: ${plan.classLetters.length ? plan.classLetters.map(l=>`${plan.gradeNum||'?'}-${l}`).join(', ') : (plan.gradeNum ? plan.gradeNum+' клас' : '')}` : 'Нічого не обрано — без прив\'язки до конкретного класу.'}</p>
+      </div>
+      <div class="row" style="margin-top:10px;">
+        <button class="btn btn-ghost save-plan-btn" data-subject="${escapeHtml(subj)}">Зберегти теми</button>
+        <button class="btn btn-primary calendarize-btn" data-subject="${escapeHtml(subj)}">Календаризувати</button>
+        ${dated.length ? `<button class="btn btn-ghost toggle-dated-btn" data-subject="${escapeHtml(subj)}">Показати дати</button>` : ''}
+      </div>
+      ${dated.length ? `
+      <div class="dated-list hidden" data-subject-list="${escapeHtml(subj)}">
+        ${dated.map(r=>{
+          const d = new Date(r.date+'T00:00:00');
+          const label = `${d.getDate()} ${MONTH_NAMES[d.getMonth()].toLowerCase()} ${d.getFullYear()}`;
+          const classLabel = r.letters && r.letters.length
+            ? r.letters.map(l=>`${r.gradeNum||'?'}-${l}`).join(', ')
+            : (r.gradeNum ? `${r.gradeNum} клас` : '');
+          const lettersLabel = classLabel ? ` <span class="dated-letters">(${classLabel})</span>` : '';
+          return `<div class="dated-row">
+            <span class="dated-date">${label}</span>
+            <span class="dated-topic">${escapeHtml(r.topic)}${lettersLabel}</span>
+            <button type="button" class="dated-remove-btn" data-subject="${escapeHtml(subj)}" data-date="${r.date}" data-period="${r.period}" aria-label="Прибрати урок з ${label}" title="Прибрати з календаря">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+            </button>
+          </div>`;
+        }).join('')}
+      </div>` : ''}
+    </div>`;
+  }).join('');
+
+  list.querySelectorAll('.grade-num-select').forEach(sel=>{
+    sel.onchange = ()=>{
+      const subj = sel.dataset.subject;
+      getPlan(subj).gradeNum = sel.value;
+      saveState();
+      renderSubjectsList(getSubjectsInSchedule());
+    };
+  });
+
+  list.querySelectorAll('.class-letter-pill').forEach(pill=>{
+    pill.onclick = ()=>{
+      const subj = pill.dataset.subject;
+      const letter = pill.dataset.letter;
+      const plan = getPlan(subj);
+      if(plan.classLetters.includes(letter)) plan.classLetters = plan.classLetters.filter(l=>l!==letter);
+      else plan.classLetters.push(letter);
+      saveState();
+      renderSubjectsList(getSubjectsInSchedule());
+    };
+  });
+
+  list.querySelectorAll('.topic-remove-btn').forEach(btn=>{
+    btn.onclick = ()=>{
+      const subj = btn.dataset.subject;
+      const idx = parseInt(btn.dataset.idx);
+      const plan = getPlan(subj);
+      plan.topics.splice(idx, 1);
+      saveState();
+      renderSubjectsList(getSubjectsInSchedule());
+    };
+  });
+
+  list.querySelectorAll('.dated-remove-btn').forEach(btn=>{
+    btn.onclick = ()=>{
+      const subj = btn.dataset.subject;
+      const dateStr = btn.dataset.date;
+      const period = parseInt(btn.dataset.period);
+      if(state.calendarized[dateStr]){
+        state.calendarized[dateStr] = state.calendarized[dateStr].filter(e=>!(e.period===period && normalizeText(e.subject)===normalizeText(subj)));
+        if(!state.calendarized[dateStr].length) delete state.calendarized[dateStr];
+      }
+      saveState();
+      showToast('Урок прибрано з календаря');
+      renderSubjectsList(getSubjectsInSchedule());
+    };
+  });
+
+  list.querySelectorAll('.toggle-dated-btn').forEach(btn=>{
+    btn.onclick = ()=>{
+      const subj = btn.dataset.subject;
+      const panel = list.querySelector(`.dated-list[data-subject-list="${cssEscape(subj)}"]`);
+      const isHidden = panel.classList.toggle('hidden');
+      btn.textContent = isHidden ? 'Показати дати' : 'Сховати дати';
+    };
+  });
+
+  list.querySelectorAll('.delete-subject-btn').forEach(btn=>{
+    btn.onclick = ()=>{
+      if(btn.dataset.confirming !== 'true'){
+        btn.dataset.confirming = 'true';
+        const originalHtml = btn.innerHTML;
+        btn.dataset.originalHtml = originalHtml;
+        btn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>';
+        btn.title = 'Підтвердіть видалення предмета';
+        btn.classList.add('confirming');
+        btn._revertTimer = setTimeout(()=>{
+          btn.dataset.confirming = 'false';
+          btn.innerHTML = btn.dataset.originalHtml;
+          btn.title = 'Видалити предмет';
+          btn.classList.remove('confirming');
+        }, 4000);
+        return;
+      }
+      clearTimeout(btn._revertTimer);
+      const subj = btn.dataset.subject;
+      delete state.plans[subj];
+      Object.keys(state.calendarized).forEach(dateStr=>{
+        state.calendarized[dateStr] = state.calendarized[dateStr].filter(e=>normalizeText(e.subject)!==normalizeText(subj));
+        if(!state.calendarized[dateStr].length) delete state.calendarized[dateStr];
+      });
+      saveState();
+      const stillInSchedule = WEEKDAY_KEYS.some(day => state.schedule[day].some(s=>normalizeText(s)===normalizeText(subj)));
+      showToast(stillInSchedule
+        ? `Теми предмета «${subj}» видалено. Він досі є в розкладі, тому картка з'явиться знову — приберіть його й у «Розкладі», якщо він більше не потрібен.`
+        : `Предмет «${subj}» видалено з календарного планування`);
+      renderSubjectsList(getSubjectsInSchedule());
+    };
+  });
+
+  list.querySelectorAll('.delete-plan-btn').forEach(btn=>{
+    btn.onclick = ()=>{
+      if(btn.dataset.confirming !== 'true'){
+        btn.dataset.confirming = 'true';
+        const originalHtml = btn.innerHTML;
+        btn.innerHTML = 'Натисніть ще раз, щоб видалити';
+        btn.classList.add('confirming');
+        btn._revertTimer = setTimeout(()=>{
+          btn.dataset.confirming = 'false';
+          btn.innerHTML = originalHtml;
+          btn.classList.remove('confirming');
+        }, 4000);
+        return;
+      }
+      clearTimeout(btn._revertTimer);
+      const subj = btn.dataset.subject;
+      getPlan(subj).topics = [];
+      Object.keys(state.calendarized).forEach(dateStr=>{
+        state.calendarized[dateStr] = state.calendarized[dateStr].filter(e=>normalizeText(e.subject)!==normalizeText(subj));
+        if(!state.calendarized[dateStr].length) delete state.calendarized[dateStr];
+      });
+      saveState();
+      showToast('Завантажені теми видалено');
+      renderSubjectsList(getSubjectsInSchedule());
+    };
+  });
+
+  list.querySelectorAll('.save-plan-btn').forEach(btn=>{
+    btn.onclick = ()=>{
+      const subj = btn.dataset.subject;
+      const ta = list.querySelector(`textarea[data-subject="${cssEscape(subj)}"]`);
+      getPlan(subj).topics = ta.value.split('\n').map(s=>s.trim()).filter(Boolean);
+      saveState();
+      showToast('Теми збережено');
+      renderSubjectsList(getSubjectsInSchedule());
+    };
+  });
+  list.querySelectorAll('.plan-file-input').forEach(inp=>{
+    inp.addEventListener('change', (e)=>handlePlanFileUpload(e, list));
+  });
+  list.querySelectorAll('.textbook-file-input').forEach(inp=>{
+    inp.addEventListener('change', (e)=>handleTextbookUpload(e, list));
+  });
+  list.querySelectorAll('.delete-textbook-btn').forEach(btn=>{
+    btn.onclick = ()=>{
+      if(btn.dataset.confirming !== 'true'){
+        btn.dataset.confirming = 'true';
+        const originalHtml = btn.innerHTML;
+        btn.dataset.originalHtml = originalHtml;
+        btn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>';
+        btn.classList.add('confirming');
+        btn._revertTimer = setTimeout(()=>{
+          btn.dataset.confirming = 'false';
+          btn.innerHTML = btn.dataset.originalHtml;
+          btn.classList.remove('confirming');
+        }, 4000);
+        return;
+      }
+      clearTimeout(btn._revertTimer);
+      deleteTextbook(btn.dataset.subject);
+    };
+  });
+  list.querySelectorAll('.calendarize-btn').forEach(btn=>{
+    btn.onclick = ()=>{
+      const subj = btn.dataset.subject;
+      const ta = list.querySelector(`textarea[data-subject="${cssEscape(subj)}"]`);
+      getPlan(subj).topics = ta.value.split('\n').map(s=>s.trim()).filter(Boolean);
+      calendarizeSubject(subj);
+    };
+  });
+}
+
+async function withSuppressedWarnings(fn){
+  const originalWarn = console.warn;
+  console.warn = function(){};
+  try{
+    return await fn();
+  } finally {
+    console.warn = originalWarn;
+  }
+}
+
+async function extractRawTextFromFile(file){
+  const ext = file.name.split('.').pop().toLowerCase();
+  if(ext === 'txt' || ext === 'csv'){
+    return await readFileAsText(file);
+  } else if(ext === 'docx'){
+    if(!window.mammoth) throw new Error('mammoth-missing');
+    const buf = await readFileAsArrayBuffer(file);
+    const result = await mammoth.extractRawText({ arrayBuffer: buf });
+    return result.value;
+  } else if(ext === 'doc'){
+    throw new Error('doc-unsupported');
+  } else if(ext === 'pdf'){
+    if(!window.pdfjsLib) throw new Error('pdfjs-missing');
+    const buf = await readFileAsArrayBuffer(file);
+    return await extractPdfText(buf);
+  }
+  throw new Error('unsupported-format');
+}
+
+async function handlePlanFileUpload(e, list){
+  const file = e.target.files[0];
+  const inp = e.target;
+  if(!file) return;
+  const subj = inp.dataset.subject;
+  showToast('Обробляємо файл...');
+
+  try{
+    const rawText = await withSuppressedWarnings(()=>extractRawTextFromFile(file));
+    const lines = linesFromRawText(rawText);
+    if(!lines.length){
+      showToast('У файлі не знайдено тексту з темами');
+      inp.value = ''; return;
+    }
+    showPlanPreview(lines, subj, list);
+  }catch(err){
+    console.error('Помилка завантаження файлу плану:', err);
+    const msg = err && err.message ? err.message : String(err);
+    if(msg === 'doc-unsupported') showToast('Старий формат .doc не підтримується — збережіть файл як .docx і спробуйте ще раз');
+    else if(msg === 'unsupported-format') showToast('Формат файлу не підтримується. Дозволені: .pdf, .docx, .txt, .csv');
+    else if(msg === 'mammoth-missing') showToast('Не вдалося завантажити модуль читання Word-файлів (перевірте інтернет-з\'єднання й спробуйте ще раз)');
+    else if(msg === 'pdfjs-missing') showToast('Не вдалося завантажити модуль читання PDF (перевірте інтернет-з\'єднання й спробуйте ще раз)');
+    else showToast(`Не вдалося обробити файл: ${msg}`);
+  }
+  inp.value = '';
+}
+
+async function handleTextbookUpload(e, list){
+  const file = e.target.files[0];
+  const inp = e.target;
+  if(!file) return;
+  const subj = inp.dataset.subject;
+  showToast('Обробляємо підручник — це може зайняти трохи часу...');
+
+  try{
+    let rawText = await withSuppressedWarnings(()=>extractRawTextFromFile(file));
+    if(!rawText.trim()){
+      showToast('У файлі не вдалося знайти текст');
+      inp.value = ''; return;
+    }
+
+    // зберігаємо з поступовим зменшенням обсягу, якщо сховище відмовляє через розмір
+    const sizeSteps = AppStorage.isNative ? [350000, 200000, 100000, 50000] : [150000, 80000, 40000, 20000, 8000];
+    let saved = false;
+    let usedChars = 0;
+    let lastStorageErr = null;
+    for(const cap of sizeSteps){
+      const chunk = rawText.slice(0, cap);
+      let stepOk = false;
+      for(let attempt=1; attempt<=2 && !stepOk; attempt++){
+        try{
+          await AppStorage.set(textbookKey(subj), chunk, false);
+          stepOk = true;
+        }catch(storageErr){
+          lastStorageErr = storageErr;
+          console.error(`Не вдалося зберегти підручник (обсяг ${cap}, спроба ${attempt})`, storageErr);
+          if(attempt < 2) await new Promise(r=>setTimeout(r, 1000));
+        }
+      }
+      if(stepOk){
+        saved = true;
+        usedChars = chunk.length;
+        break;
+      }
+    }
+
+    if(!saved){
+      const detail = lastStorageErr && lastStorageErr.message ? lastStorageErr.message : 'невідома помилка';
+      showToast(`Не вдалося зберегти підручник (${detail}). Спробуйте ще раз за хвилину або з меншим файлом.`);
+      inp.value = ''; return;
+    }
+
+    state.textbooks[subj] = { fileName: file.name, chars: usedChars, uploadedAt: new Date().toISOString() };
+    await saveState();
+    showToast(usedChars < rawText.length
+      ? `Підручник завантажено (збережено перші ${Math.round(usedChars/1000)} тис. символів — файл великий)`
+      : 'Підручник завантажено і готовий до використання в розробках уроків');
+    renderSubjectsList(getSubjectsInSchedule());
+  }catch(err){
+    console.error('Помилка завантаження підручника:', err);
+    const msg = err && err.message ? err.message : String(err);
+    if(msg === 'doc-unsupported') showToast('Старий формат .doc не підтримується — збережіть файл як .docx і спробуйте ще раз');
+    else if(msg === 'unsupported-format') showToast('Формат файлу не підтримується. Дозволені: .pdf, .docx, .txt');
+    else if(msg === 'mammoth-missing') showToast('Не вдалося завантажити модуль читання Word-файлів (перевірте інтернет-з\'єднання й спробуйте ще раз)');
+    else if(msg === 'pdfjs-missing') showToast('Не вдалося завантажити модуль читання PDF (перевірте інтернет-з\'єднання й спробуйте ще раз)');
+    else showToast(`Не вдалося обробити підручник: ${msg}`);
+  }
+  inp.value = '';
+}
+
+async function deleteTextbook(subj){
+  try{ await AppStorage.delete(textbookKey(subj)); }catch(e){ /* ключа могло вже не бути */ }
+  delete state.textbooks[subj];
+  saveState();
+  showToast('Підручник видалено');
+  renderSubjectsList(getSubjectsInSchedule());
+}
+
+function isLikelyHeader(line){
+  const l = line.trim();
+  const lower = normalizeText(l);
+  const wordCount = l.split(/\s+/).filter(Boolean).length;
+
+  // явні службові фрази
+  if(/календарно.?тематичн|тематичне планування|навчальний рік|погоджено|затверджую|розглянуто|схвалено/i.test(l)) return true;
+  // "Розділ", "Тема", "Модуль" самі по собі (без реального опису теми)
+  if(/^(розділ|тема|модуль|чверть|семестр)\s*[0-9ivxIVX]*\.?\s*$/i.test(l)) return true;
+  // табличні заголовки колонок
+  if(/^(дата|№|n\s*п\/п|п\/п|клас|предмет|примітк|дата проведення|факт|план)\b/i.test(l) && l.length < 30) return true;
+  // рядки-роздільники або сторінки
+  if(/^(сторінка|стор\.?)\s*\d+/i.test(l)) return true;
+  // майже все великими літерами і коротко — типовий заголовок розділу
+  const lettersOnly = l.replace(/[^А-ЯҐЄІЇа-яґєіїA-Za-z]/g,'');
+  if(lettersOnly.length>3){
+    const upperRatio = (lettersOnly.match(/[А-ЯҐЄІЇA-Z]/g)||[]).length / lettersOnly.length;
+    if(upperRatio > 0.85 && wordCount <= 6) return true;
+  }
+  // лише дата чи число
+  if(/^\d{1,2}[.\/]\d{1,2}([.\/]\d{2,4})?$/.test(l)) return true;
+  if(/^\d+$/.test(l)) return true;
+
+  return false;
+}
+
+function showPlanPreview(lines, subj, list){
+  const overlay = document.getElementById('planPreviewOverlay');
+  const modal = document.getElementById('planPreviewModal');
+  const rowsHtml = lines.map((line,i)=>{
+    const checked = !isLikelyHeader(line);
+    return `<label class="preview-row ${checked?'':'preview-row-header'}">
+      <input type="checkbox" data-idx="${i}" ${checked?'checked':''}>
+      <span>${escapeHtml(line)}</span>
+    </label>`;
+  }).join('');
+
+  modal.innerHTML = `
+    <div class="modal-head">
+      <div>
+        <h2 class="serif" style="margin:0">Оберіть теми з файлу</h2>
+        <p style="margin:2px 0 0; color:var(--muted); font-size:13px;">Рядки, схожі на заголовки, вже знято — перевірте список і за потреби зніміть/додайте позначки.</p>
+      </div>
+      <button class="close-x" id="closePreview" aria-label="Закрити"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+    </div>
+    <div class="row" style="margin-bottom:10px; gap:8px;">
+      <button type="button" class="btn btn-ghost" id="selectAllPreview">Обрати всі</button>
+      <button type="button" class="btn btn-ghost" id="selectNonePreview">Зняти всі</button>
+    </div>
+    <div class="preview-list">${rowsHtml}</div>
+    <div class="row" style="margin-top:16px; justify-content:flex-end;">
+      <button class="btn btn-ghost" id="cancelPreview">Скасувати</button>
+      <button class="btn btn-primary" id="addPreviewSelected">Додати обрані теми</button>
+    </div>
+  `;
+  overlay.classList.remove('hidden');
+
+  const close = ()=>overlay.classList.add('hidden');
+  document.getElementById('closePreview').onclick = close;
+  document.getElementById('cancelPreview').onclick = close;
+  overlay.onclick = (e)=>{ if(e.target===overlay) close(); };
+  document.getElementById('selectAllPreview').onclick = ()=>{
+    modal.querySelectorAll('.preview-row input').forEach(cb=>cb.checked=true);
+  };
+  document.getElementById('selectNonePreview').onclick = ()=>{
+    modal.querySelectorAll('.preview-row input').forEach(cb=>cb.checked=false);
+  };
+  document.getElementById('addPreviewSelected').onclick = ()=>{
+    const selected = Array.from(modal.querySelectorAll('.preview-row input:checked')).map(cb=>lines[parseInt(cb.dataset.idx)]);
+    if(!selected.length){ showToast('Оберіть хоча б одну тему'); return; }
+    const ta = list.querySelector(`textarea[data-subject="${cssEscape(subj)}"]`);
+    const existing = ta.value.split('\n').map(s=>s.trim()).filter(Boolean);
+    ta.value = Array.from(new Set([...existing, ...selected])).join('\n');
+    close();
+    showToast(`Додано ${selected.length} тем — натисніть «Зберегти теми»`);
+  };
+}
+
+function readFileAsText(file){
+  return new Promise((resolve, reject)=>{
+    const reader = new FileReader();
+    reader.onload = ()=>resolve(String(reader.result));
+    reader.onerror = ()=>reject(reader.error);
+    reader.readAsText(file, 'UTF-8');
+  });
+}
+function readFileAsArrayBuffer(file){
+  return new Promise((resolve, reject)=>{
+    const reader = new FileReader();
+    reader.onload = ()=>resolve(reader.result);
+    reader.onerror = ()=>reject(reader.error);
+    reader.readAsArrayBuffer(file);
+  });
+}
+
+async function extractPdfText(arrayBuffer){
+  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer, verbosity: 0 }).promise;
+  const lines = [];
+  for(let p=1; p<=pdf.numPages; p++){
+    const page = await pdf.getPage(p);
+    const content = await page.getTextContent();
+    const lineMap = new Map();
+    content.items.forEach(item=>{
+      const y = Math.round(item.transform[5]);
+      if(!lineMap.has(y)) lineMap.set(y, []);
+      lineMap.get(y).push(item.str);
+    });
+    Array.from(lineMap.keys()).sort((a,b)=>b-a).forEach(y=>{
+      const lineText = lineMap.get(y).join(' ').replace(/\s+/g,' ').trim();
+      if(lineText) lines.push(lineText);
+    });
+  }
+  return lines.join('\n');
+}
+
+function linesFromRawText(text){
+  return text.split(/\r?\n/)
+    .map(s=>s.replace(/^["'•\-–—\u2022]+\s*/,'').replace(/^\d+[.)]\s*/,'').trim())
+    .filter(s=>s && s.length>1);
+}
+
+function extractRelevantExcerpt(text, topic, maxChars){
+  maxChars = maxChars || 3000;
+  const topicWords = normalizeText(topic).split(/\s+/).filter(w=>w.length>3);
+  const paragraphs = text.split(/\r?\n\s*\r?\n|\r?\n/).map(p=>p.trim()).filter(p=>p.length>25);
+  if(!paragraphs.length) return text.slice(0, maxChars);
+
+  let result = '';
+  if(topicWords.length){
+    const scored = paragraphs.map(p=>{
+      const pl = normalizeText(p);
+      let score = 0;
+      topicWords.forEach(w=>{ if(pl.includes(w)) score++; });
+      return { p, score };
+    }).filter(x=>x.score>0).sort((a,b)=>b.score-a.score);
+    result = scored.slice(0, 8).map(x=>x.p).join('\n\n');
+  }
+  if(!result){
+    result = paragraphs.slice(0, 6).join('\n\n');
+  }
+  return result.slice(0, maxChars);
+}
+
+async function getTextbookExcerptForSubject(subject, topic){
+  const meta = state.textbooks[subject];
+  if(!meta) return null;
+  try{
+    const res = await AppStorage.get(textbookKey(subject));
+    if(!res || !res.value) return null;
+    return extractRelevantExcerpt(res.value, topic, 3000);
+  }catch(e){
+    console.error('Не вдалося прочитати підручник', e);
+    return null;
+  }
+}
+
+function calendarizeSubject(subject){
+
+  const plan = getPlan(subject);
+  const topics = plan.topics;
+  if(!topics.length){ showToast('Немає тем для календаризації — спершу додайте теми або завантажте файл'); return; }
+
+  const occursOn = WEEKDAY_KEYS.filter(day => state.schedule[day].some(s=>normalizeText(s)===normalizeText(subject)));
+  if(!occursOn.length){
+    showToast(`«${subject}» не знайдено в розкладі. Перевірте вкладку «Розклад» — назва предмета має збігатися точно.`);
+    return;
+  }
+
+  // прибираємо попередні призначення цього предмета
+  Object.keys(state.calendarized).forEach(dateStr=>{
+    state.calendarized[dateStr] = state.calendarized[dateStr].filter(e=>normalizeText(e.subject)!==normalizeText(subject));
+    if(!state.calendarized[dateStr].length) delete state.calendarized[dateStr];
+  });
+
+  const excluded = getAllExcludedDates();
+  const endDate = state.settings.endDate ? new Date(state.settings.endDate + 'T00:00:00') : null;
+  const startDate = state.settings.startDate ? new Date(state.settings.startDate + 'T00:00:00') : new Date();
+  let d = new Date(startDate);
+  let idx = 0;
+  let guard = 0;
+  let skippedAllExcluded = true;
+  while(idx < topics.length && guard < 3650){
+    guard++;
+    if(endDate && d > endDate) break;
+    const wk = weekdayKeyFor(d);
+    const dateStr = fmtDate(d);
+    if(wk && occursOn.includes(wk)){
+      if(!state.settings.excludedWeekdays.includes(wk) && !excluded.has(dateStr)){
+        skippedAllExcluded = false;
+        const periods = state.schedule[wk]
+          .map((s,i)=>({s, period:i+1}))
+          .filter(x=>normalizeText(x.s)===normalizeText(subject));
+        for(const p of periods){
+          if(idx >= topics.length) break;
+          if(!state.calendarized[dateStr]) state.calendarized[dateStr] = [];
+          state.calendarized[dateStr].push({ subject, period: p.period, topic: topics[idx], letters: plan.classLetters.slice(), gradeNum: plan.gradeNum || '' });
+          idx++;
+        }
+      }
+    }
+    d.setDate(d.getDate()+1);
+  }
+  saveState();
+  if(idx === 0 && skippedAllExcluded){
+    showToast(`Усі дні, коли є «${subject}» за розкладом, потрапляють під канікули або виключені дні тижня — перевірте параметри.`);
+  } else if(idx < topics.length){
+    showToast(`Календаризовано ${idx} із ${topics.length} тем — не вистачило навчальних днів до кінця року`);
+  } else {
+    showToast(`Календаризовано ${idx} із ${topics.length} тем предмета «${subject}»`);
+  }
+  renderSubjectsList(getSubjectsInSchedule());
+}
+
+/* ====================== ГЕНЕРАТОР РОЗРОБКИ УРОКУ ====================== */
+async function renderGeneratorTab(){
+  const c = document.getElementById('content');
+  const subjects = getSubjectsInSchedule();
+  const upcoming = getUpcomingCalendarizedLessons(8);
+  if(!generatorPrefill) currentGeneratorLetters = [];
+  c.innerHTML = `
+    ${upcoming.length ? `
+    <div class="card">
+      <h2>Найближчі уроки з календарного плану</h2>
+      <p class="empty-hint" style="margin-top:-6px;">Натисніть на урок, щоб одразу підтягнути тему — вводити вручну не потрібно.</p>
+      ${upcoming.map(u=>`
+        <button type="button" class="upcoming-lesson-btn" data-subject="${escapeHtml(u.subject)}" data-topic="${escapeHtml(u.topic)}" data-letters="${escapeHtml((u.letters||[]).join(','))}" data-grade="${escapeHtml(u.gradeNum||'')}">
+          <span class="uld-date">${u.dayLabel}</span>
+          <span class="uld-subject">${escapeHtml(u.subject)}${u.letters && u.letters.length ? ` <span class="dated-letters">(${u.letters.map(x=>`${u.gradeNum||'?'}-${x}`).join(', ')})</span>` : (u.gradeNum ? ` <span class="dated-letters">(${u.gradeNum} клас)</span>` : '')}</span>
+          <span class="uld-topic">${escapeHtml(u.topic)}</span>
+        </button>`).join('')}
+    </div>` : ''}
+    <div class="card">
+      <h2>Створити розробку уроку</h2>
+      <div class="row">
+        <div class="field" style="flex:1; min-width:180px;">
+          <label for="genSubject">Предмет</label>
+          <select id="genSubject">
+            <option value="">— оберіть предмет —</option>
+            ${subjects.map(s=>`<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('')}
+          </select>
+        </div>
+        <div class="field">
+          <label for="genGradeNum">Клас</label>
+          <select id="genGradeNum" autocomplete="off">
+            <option value="" selected>— оберіть клас —</option>
+            ${Array.from({length:12}, (_,i)=>i+1).map(n=>`<option value="${n}">${n} клас</option>`).join('')}
+          </select>
+        </div>
+      </div>
+      <div class="field" style="margin-top:10px;">
+        <label for="genTopic">Тема уроку</label>
+        <select id="genTopic">
+          <option value="">— спочатку оберіть предмет —</option>
+        </select>
+        <input type="text" id="genTopicCustom" placeholder="Впишіть свою тему" style="display:none; margin-top:8px;">
+        <p class="empty-hint" id="genTopicHint" style="margin:2px 0 0;">Теми беруться зі списку, завантаженого на вкладці «Календарне планування».</p>
+        <p class="empty-hint textbook-indicator" id="genTextbookIndicator" style="margin:4px 0 0; display:none;"></p>
+        <p class="empty-hint textbook-indicator" id="genLettersIndicator" style="margin:4px 0 0; display:none;"></p>
+      </div>
+      <div class="row" style="margin-top:14px;">
+        <button class="btn btn-primary" id="generateBtn">Згенерувати промт для розробки уроку</button>
+        <button class="btn btn-ghost" id="copyGenBtn" style="display:none;">Копіювати промт</button>
+      </div>
+      <div id="genOutputWrap"></div>
+    </div>
+  `;
+
+  document.getElementById('generateBtn').onclick = runLessonGeneration;
+  document.getElementById('genGradeNum').value = '';
+  document.getElementById('genGradeNum').onchange = ()=>setGeneratorLetters(currentGeneratorLetters);
+  document.getElementById('genSubject').onchange = ()=>{ populateTopicOptions(); updateTextbookIndicator(); setGeneratorLetters([]); };
+  document.getElementById('genTopic').onchange = (e)=>{
+    document.getElementById('genTopicCustom').style.display = e.target.value === '__custom__' ? 'block' : 'none';
+    // теми обрані вручну зі списку тем плану не мають прив'язки до конкретної дати/літери
+    setGeneratorLetters([]);
+  };
+  updateTextbookIndicator();
+  c.querySelectorAll('.upcoming-lesson-btn').forEach(btn=>{
+    btn.onclick = ()=>{
+      generatorPrefill = { subject: btn.dataset.subject, topic: btn.dataset.topic, letters: btn.dataset.letters ? btn.dataset.letters.split(',').filter(Boolean) : [], gradeNum: btn.dataset.grade || '' };
+      applyGeneratorPrefill();
+    };
+  });
+
+  if(generatorPrefill){
+    applyGeneratorPrefill();
+  }
+}
+
+function applyGeneratorPrefill(){
+  if(!generatorPrefill) return;
+  const subjSelect = document.getElementById('genSubject');
+  if([...subjSelect.options].some(o=>o.value===generatorPrefill.subject)){
+    subjSelect.value = generatorPrefill.subject;
+  }
+  populateTopicOptions();
+  updateTextbookIndicator();
+  const topicSelect = document.getElementById('genTopic');
+  const hasOption = [...topicSelect.options].some(o=>o.value===generatorPrefill.topic);
+  if(hasOption){
+    topicSelect.value = generatorPrefill.topic;
+  } else {
+    topicSelect.value = '__custom__';
+    document.getElementById('genTopicCustom').style.display = 'block';
+    document.getElementById('genTopicCustom').value = generatorPrefill.topic;
+  }
+  if(generatorPrefill.gradeNum){
+    const gradeSelect = document.getElementById('genGradeNum');
+    if(gradeSelect && [...gradeSelect.options].some(o=>o.value===generatorPrefill.gradeNum)){
+      gradeSelect.value = generatorPrefill.gradeNum;
+    }
+  }
+  setGeneratorLetters(generatorPrefill.letters || []);
+  generatorPrefill = null;
+}
+
+function setGeneratorLetters(letters){
+  currentGeneratorLetters = letters || [];
+  const el = document.getElementById('genLettersIndicator');
+  if(!el) return;
+  if(currentGeneratorLetters.length){
+    el.style.display = 'block';
+    const gradeNum = document.getElementById('genGradeNum') ? document.getElementById('genGradeNum').value : '';
+    el.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px; margin-right:4px;"><path d="M17 20h5v-2a4 4 0 0 0-3-3.87M9 20H4v-2a4 4 0 0 1 3-3.87M16 3.13a4 4 0 0 1 0 7.75M8 3.13a4 4 0 0 0 0 7.75"/><circle cx="9" cy="7" r="4"/></svg>Клас: ${currentGeneratorLetters.map(l=>`${gradeNum}-${l}`).join(', ')} <button type="button" id="clearLettersBtn" style="background:none;border:none;color:var(--coral);text-decoration:underline;cursor:pointer;font-size:12px;margin-left:6px;">прибрати</button>`;
+    const clearBtn = document.getElementById('clearLettersBtn');
+    if(clearBtn) clearBtn.onclick = ()=>setGeneratorLetters([]);
+  } else {
+    el.style.display = 'none';
+  }
+}
+
+function updateTextbookIndicator(){
+  const subject = document.getElementById('genSubject').value;
+  const el = document.getElementById('genTextbookIndicator');
+  if(!el) return;
+  if(subject && state.textbooks[subject]){
+    el.style.display = 'block';
+    el.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px; margin-right:4px;"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>Використаємо підручник «${escapeHtml(state.textbooks[subject].fileName)}» для точнішої розробки.`;
+  } else {
+    el.style.display = 'none';
+  }
+}
+
+function getUpcomingCalendarizedLessons(limit){
+  const today = todayStr();
+  const rows = [];
+  Object.keys(state.calendarized).sort().forEach(dateStr=>{
+    if(dateStr < today) return;
+    state.calendarized[dateStr].forEach(e=>{
+      if(e.topic) rows.push({ date: dateStr, subject: e.subject, topic: e.topic, letters: e.letters||[], gradeNum: e.gradeNum||'' });
+    });
+  });
+  rows.sort((a,b)=>a.date.localeCompare(b.date));
+  return rows.slice(0, limit).map(r=>{
+    const d = new Date(r.date + 'T00:00:00');
+    return Object.assign(r, { dayLabel: `${d.getDate()} ${MONTH_NAMES[d.getMonth()].toLowerCase()}` });
+  });
+}
+
+function populateTopicOptions(){
+  const subject = document.getElementById('genSubject').value;
+  const topicSelect = document.getElementById('genTopic');
+  const customInput = document.getElementById('genTopicCustom');
+  customInput.style.display = 'none';
+  customInput.value = '';
+  const topics = subject ? getPlan(subject).topics : [];
+  if(!subject){
+    topicSelect.innerHTML = `<option value="">— спочатку оберіть предмет —</option><option value="__custom__">Ввести тему вручну</option>`;
+    return;
+  }
+  if(!topics.length){
+    topicSelect.innerHTML = `<option value="">— для цього предмета ще немає тем у плані —</option><option value="__custom__">Ввести тему вручну</option>`;
+    return;
+  }
+  topicSelect.innerHTML = `<option value="">— оберіть тему —</option>` +
+    topics.map(t=>`<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`).join('') +
+    `<option value="__custom__">Ввести іншу тему вручну</option>`;
+}
+
+function formatLessonText(raw){
+  // проста конвертація заголовків Markdown у HTML для читабельності
+  const escaped = escapeHtml(raw);
+  return escaped
+    .replace(/^### (.*)$/gm, '<h3>$1</h3>')
+    .replace(/^## (.*)$/gm, '<h3>$1</h3>')
+    .replace(/^# (.*)$/gm, '<h3>$1</h3>')
+    .replace(/^\*\*(.*)\*\*$/gm, '<strong>$1</strong>')
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+}
+
+async function copyTextToClipboard(text){
+  try{
+    if(navigator.clipboard && window.isSecureContext){
+      await navigator.clipboard.writeText(text);
+      showToast('Скопійовано');
+      return;
+    }
+    throw new Error('clipboard API недоступний');
+  }catch(err){
+    // резервний варіант — прихований textarea + execCommand('copy')
+    try{
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.top = '-1000px';
+      ta.style.left = '-1000px';
+      document.body.appendChild(ta);
+      ta.focus();
+      ta.select();
+      const ok = document.execCommand('copy');
+      document.body.removeChild(ta);
+      if(ok){ showToast('Скопійовано'); return; }
+      throw new Error('execCommand не спрацював');
+    }catch(err2){
+      showTextForManualCopy(text);
+    }
+  }
+}
+
+function showTextForManualCopy(text){
+  const overlay = document.getElementById('planPreviewOverlay');
+  const modal = document.getElementById('planPreviewModal');
+  modal.innerHTML = `
+    <div class="modal-head">
+      <div>
+        <h2 class="serif" style="margin:0">Скопіюйте текст вручну</h2>
+        <p style="margin:2px 0 0; color:var(--muted); font-size:13px;">Автоматичне копіювання недоступне в цьому браузері. Виділіть текст нижче (Ctrl+A) і скопіюйте (Ctrl+C).</p>
+      </div>
+      <button class="close-x" id="closeManualCopy" aria-label="Закрити"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+    </div>
+    <textarea readonly style="width:100%; min-height:300px; font-size:13px;">${escapeHtml(text)}</textarea>
+  `;
+  overlay.classList.remove('hidden');
+  const ta = modal.querySelector('textarea');
+  ta.focus();
+  ta.select();
+  document.getElementById('closeManualCopy').onclick = ()=>overlay.classList.add('hidden');
+  overlay.onclick = (e)=>{ if(e.target===overlay) overlay.classList.add('hidden'); };
+}
+
+async function runLessonGeneration(){
+  const subject = document.getElementById('genSubject').value.trim();
+  const gradeNum = document.getElementById('genGradeNum').value;
+  if(!gradeNum){ showToast('Оберіть клас'); return; }
+  const selectedLetters = currentGeneratorLetters;
+  const grade = selectedLetters.length
+    ? `${gradeNum} клас (${selectedLetters.map(l=>`${gradeNum}-${l}`).join(', ')})`
+    : `${gradeNum} клас`;
+  const topicSelectVal = document.getElementById('genTopic').value;
+  const topic = (topicSelectVal === '__custom__' ? document.getElementById('genTopicCustom').value : topicSelectVal).trim();
+  const btn = document.getElementById('generateBtn');
+  const wrap = document.getElementById('genOutputWrap');
+  const copyBtn = document.getElementById('copyGenBtn');
+
+  if(!topic){ showToast('Введіть тему уроку'); return; }
+
+  btn.disabled = true;
+  copyBtn.style.display = 'none';
+  wrap.innerHTML = `<div class="loader"><span class="spinner"></span> Формуємо промт...</div>`;
+
+  let textbookExcerpt = null;
+  if(subject && state.textbooks[subject]){
+    wrap.innerHTML = `<div class="loader"><span class="spinner"></span> Шукаємо потрібний матеріал у підручнику...</div>`;
+    textbookExcerpt = await getTextbookExcerptForSubject(subject, topic);
+    wrap.innerHTML = `<div class="loader"><span class="spinner"></span> Формуємо промт...</div>`;
+  }
+
+  const textbookBlock = textbookExcerpt
+    ? `\n\nОсь уривки з підручника з цього предмета, які стосуються теми (використовуй їх зміст, приклади й формулювання як основу, де це доречно):\n"""\n${textbookExcerpt}\n"""\n`
+    : '';
+
+  const promptText = `Ти — досвідчений методист початкової школи в Україні (НУШ). Склади ДЕТАЛЬНУ, конкретну розробку уроку для ${grade}, предмет "${subject||'не вказано, визнач сам відповідно до теми'}", тема: "${topic}".
+${textbookBlock}
+Обов'язково структуруй відповідь заголовками Markdown (##) у такому порядку:
+## Освітня галузь — назви конкретну освітню галузь (або галузі) за Державним стандартом початкової освіти НУШ, до якої належить ця тема.
+## Мета уроку
+## Очікувані результати навчання
+## Обладнання та матеріали
+## Хід уроку — з підпунктами: Організаційний момент; Актуалізація опорних знань (з конкретним запитанням чи вправою); Повідомлення теми і мети; Основна частина — виклади пояснення і випиши ПОВНИЙ ТЕКСТ щонайменше 3 практичних завдань для учнів (реальні умови, приклади, запитання чи вправи, а не лише назви); Фізкультхвилинка (з текстом рухівки); Закріплення знань — ще одне практичне завдання з повним текстом; Підсумок уроку і рефлексія (з конкретними запитаннями до учнів).
+## Домашнє завдання — конкретне завдання, якщо доречно для класу.
+
+Пиши українською мовою, максимально конкретно і практично, орієнтуючись на вік учнів. Уникай загальних фраз на кшталт "виконати вправи на тему" — прописуй самі вправи. Не додавай вступних слів перед першим заголовком і не повторюйся.`;
+
+  wrap.innerHTML = `
+    <div class="field" style="margin-top:14px;">
+      <label for="genPromptOutput">Готовий промт — відредагуйте за потреби, скопіюйте і вставте у свій ІІ (ChatGPT, Gemini, Claude тощо)</label>
+      <textarea id="genPromptOutput" style="width:100%; min-height:320px; font-size:13px; line-height:1.5;">${escapeHtml(promptText)}</textarea>
+    </div>
+  `;
+  copyBtn.style.display = 'inline-flex';
+  copyBtn.onclick = ()=>copyTextToClipboard(document.getElementById('genPromptOutput').value);
+  btn.disabled = false;
+}
+
+/* ====================== ПЛАНИ НА ЧВЕРТЬ / КАНІКУЛИ ====================== */
+const PERIOD_PLAN_CONFIG = {
+  quarter: {
+    stateKey: 'quarterPlans',
+    heading: 'Додати план на чверть',
+    listHeading: 'Чверті',
+    labelPlaceholder: 'Напр., 1 чверть',
+    contentLabel: 'План роботи на чверть',
+    contentPlaceholder: 'Теми, контрольні роботи, виховні заходи, звітність тощо…',
+    suggestions: ['1 чверть', '2 чверть', '3 чверть', '4 чверть'],
+    emptyHint: 'Поки що немає жодного плану. Додайте план роботи напередодні початку чверті.'
+  },
+  holiday: {
+    stateKey: 'holidayPlans',
+    heading: 'Додати план на канікули',
+    listHeading: 'Канікули',
+    labelPlaceholder: 'Напр., Осінні канікули',
+    contentLabel: 'План роботи на канікули',
+    contentPlaceholder: 'Чергування, підготовка кабінету, самоосвіта, заходи для учнів тощо…',
+    suggestions: ['Осінні канікули', 'Зимові канікули', 'Весняні канікули', 'Літні канікули'],
+    emptyHint: 'Поки що немає жодного плану. Додайте план роботи напередодні початку канікул.'
+  }
+};
+let periodPlanEditId = { quarter: null, holiday: null };
+let currentPeriodKind = 'quarter';
+
+function periodStatus(item){
+  const today = todayStr();
+  if(item.startDate && item.endDate){
+    if(today < item.startDate) return { label: 'Майбутня', cls: 'status-future' };
+    if(today > item.endDate) return { label: 'Минула', cls: 'status-past' };
+    return { label: 'Поточна', cls: 'status-current' };
+  }
+  return { label: '', cls: '' };
+}
+
+function renderPeriodsTab(){
+  const kind = currentPeriodKind;
+  const cfg = PERIOD_PLAN_CONFIG[kind];
+  const c = document.getElementById('content');
+  const list = [...state[cfg.stateKey]].sort((a,b)=>(a.startDate||'').localeCompare(b.startDate||''));
+  const editId = periodPlanEditId[kind];
+  const editing = editId ? state[cfg.stateKey].find(i=>i.id===editId) : null;
+
+  c.innerHTML = `
+    <div class="card">
+      <div class="row" style="gap:8px;">
+        <button type="button" class="day-pill period-kind-pill ${kind==='quarter'?'active':''}" data-kind="quarter">Чверті</button>
+        <button type="button" class="day-pill period-kind-pill ${kind==='holiday'?'active':''}" data-kind="holiday">Канікули</button>
+      </div>
+    </div>
+    <div class="card">
+      <h2>${editing ? 'Редагувати план' : cfg.heading}</h2>
+      <div class="row">
+        <div class="field" style="flex:1; min-width:200px;">
+          <label for="periodLabelInput">Назва періоду</label>
+          <input type="text" id="periodLabelInput" placeholder="${cfg.labelPlaceholder}" value="${escapeHtml(editing ? editing.label : '')}" list="periodSuggestions-${kind}">
+          <datalist id="periodSuggestions-${kind}">
+            ${cfg.suggestions.map(s=>`<option value="${escapeHtml(s)}">`).join('')}
+          </datalist>
+        </div>
+        <div class="field">
+          <label for="periodStartInput">Початок</label>
+          <input type="date" id="periodStartInput" value="${editing ? editing.startDate||'' : ''}">
+        </div>
+        <div class="field">
+          <label for="periodEndInput">Кінець</label>
+          <input type="date" id="periodEndInput" value="${editing ? editing.endDate||'' : ''}">
+        </div>
+      </div>
+      <div class="field" style="margin-top:10px;">
+        <label for="periodContentInput">${cfg.contentLabel}</label>
+        <textarea id="periodContentInput" style="min-height:160px;" placeholder="${cfg.contentPlaceholder}">${escapeHtml(editing ? editing.content||'' : '')}</textarea>
+      </div>
+      <div class="row" style="margin-top:14px;">
+        <button class="btn btn-primary" id="periodSaveBtn">${editing ? 'Зберегти зміни' : '+ Додати план'}</button>
+        ${editing ? `<button class="btn btn-ghost" id="periodCancelBtn">Скасувати</button>` : ''}
+      </div>
+    </div>
+    <div class="card">
+      <h2>${cfg.listHeading} (${list.length})</h2>
+      ${list.length ? list.map(item=>{
+        const st = periodStatus(item);
+        const dates = (item.startDate || item.endDate) ? `${item.startDate ? item.startDate.split('-').reverse().join('.') : '—'} – ${item.endDate ? item.endDate.split('-').reverse().join('.') : '—'}` : '';
+        return `
+        <div class="period-item">
+          <div class="period-item-head">
+            <div class="period-item-title">${escapeHtml(item.label || '(без назви)')} ${st.label ? `<span class="status-badge ${st.cls}">${st.label}</span>` : ''}</div>
+            <div class="period-item-actions">
+              <button class="btn btn-ghost btn-icon" data-edit="${item.id}" aria-label="Редагувати">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+              </button>
+              <button class="btn btn-danger btn-icon" data-delete="${item.id}" aria-label="Видалити">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+              </button>
+            </div>
+          </div>
+          ${dates ? `<div class="period-item-dates mono">${dates}</div>` : ''}
+          ${item.content ? `<div class="period-item-content">${escapeHtml(item.content).replace(/\n/g,'<br>')}</div>` : ''}
+        </div>`;
+      }).join('') : `<p class="empty-hint">${cfg.emptyHint}</p>`}
+    </div>
+  `;
+
+  c.querySelectorAll('.period-kind-pill').forEach(pill=>{
+    pill.onclick = ()=>{ currentPeriodKind = pill.dataset.kind; renderPeriodsTab(); };
+  });
+
+  document.getElementById('periodSaveBtn').onclick = ()=>{
+    const label = document.getElementById('periodLabelInput').value.trim();
+    const startDate = document.getElementById('periodStartInput').value;
+    const endDate = document.getElementById('periodEndInput').value;
+    const content = document.getElementById('periodContentInput').value.trim();
+    if(!label){ showToast('Вкажіть назву періоду'); return; }
+    if(editId){
+      const item = state[cfg.stateKey].find(i=>i.id===editId);
+      if(item){ Object.assign(item, { label, startDate, endDate, content }); }
+      periodPlanEditId[kind] = null;
+      showToast('Зміни збережено');
+    } else {
+      state[cfg.stateKey].push({ id: Date.now().toString(36), label, startDate, endDate, content });
+      showToast('План додано');
+    }
+    saveState();
+    renderPeriodsTab();
+  };
+  const cancelBtn = document.getElementById('periodCancelBtn');
+  if(cancelBtn){
+    cancelBtn.onclick = ()=>{ periodPlanEditId[kind] = null; renderPeriodsTab(); };
+  }
+  c.querySelectorAll('[data-edit]').forEach(btn=>{
+    btn.onclick = ()=>{ periodPlanEditId[kind] = btn.dataset.edit; renderPeriodsTab(); };
+  });
+  c.querySelectorAll('[data-delete]').forEach(btn=>{
+    btn.onclick = ()=>{
+      state[cfg.stateKey] = state[cfg.stateKey].filter(i=>i.id!==btn.dataset.delete);
+      if(periodPlanEditId[kind] === btn.dataset.delete) periodPlanEditId[kind] = null;
+      saveState();
+      renderPeriodsTab();
+    };
+  });
+}
+
+/* ====================== ДНІ НАРОДЖЕННЯ ====================== */
+function renderBirthdaysTab(){
+  const c = document.getElementById('content');
+  const sorted = [...state.birthdays].sort((a,b)=>a.date.slice(5).localeCompare(b.date.slice(5)));
+  c.innerHTML = `
+    <div class="card">
+      <h2>Додати день народження</h2>
+      <div class="row">
+        <div class="field" style="flex:1; min-width:180px;">
+          <label for="bdayNameInput">Ім'я</label>
+          <input type="text" id="bdayNameInput" placeholder="Ім'я учня / колеги">
+        </div>
+        <div class="field">
+          <label for="bdayDateInput">Дата</label>
+          <input type="date" id="bdayDateInput">
+        </div>
+        <button class="btn btn-amber" id="addBdayBtn" style="align-self:flex-end;">+ Додати</button>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Список (${sorted.length})</h2>
+      ${sorted.length ? sorted.map(b=>`
+        <div class="bday-item">
+          <div>
+            <div class="bday-name">${escapeHtml(b.name)}</div>
+            <div class="bday-date">${b.date.slice(8,10)}.${b.date.slice(5,7)}</div>
+          </div>
+          <button class="btn btn-danger btn-icon" data-id="${b.id}" aria-label="Видалити ${escapeHtml(b.name)}">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+          </button>
+        </div>`).join('') : `<p class="empty-hint">Список порожній. Додайте перший день народження вище.</p>`}
+    </div>
+    ${renderUpcomingBirthdaysWidget()}
+  `;
+
+  document.getElementById('addBdayBtn').onclick = ()=>{
+    const name = document.getElementById('bdayNameInput').value.trim();
+    const date = document.getElementById('bdayDateInput').value;
+    if(!name || !date){ showToast("Вкажіть ім'я і дату"); return; }
+    state.birthdays.push({ id: Date.now().toString(36), name, date });
+    saveState();
+    renderBirthdaysTab();
+    showToast('Додано');
+  };
+  c.querySelectorAll('[data-id]').forEach(btn=>{
+    btn.onclick = ()=>{
+      state.birthdays = state.birthdays.filter(b=>b.id!==btn.dataset.id);
+      saveState();
+      renderBirthdaysTab();
+    };
+  });
+}
+
+/* ====================== ЕЛЕКТРОННИЙ ЖУРНАЛ ====================== */
+let currentJournalSubject = null;
+/* Чернетка форми нового запису в журналі інструктажів — зберігається в пам'яті,
+   щоб недодані ще дані не губились при випадковому перемиканні вкладки. */
+let safetySessionDraft = { date: '', className: '', type: '', topic: '', studentsText: '' };
+
+function ensureJournalSubject(subject){
+  if(!state.journal[subject]) state.journal[subject] = { students: [], grades: {}, summary: {}, extraColumns: [] };
+  const j = state.journal[subject];
+  if(!Array.isArray(j.students)) j.students = [];
+  if(!j.grades || typeof j.grades !== 'object') j.grades = {};
+  if(!j.summary || typeof j.summary !== 'object') j.summary = {};
+  if(!Array.isArray(j.extraColumns)) j.extraColumns = [];
+  return j;
+}
+
+/* Список окремих УРОКІВ (не дат!) для предмета — якщо на одну дату припадає
+   два уроки (два записи в календарному плануванні), кожен стає окремим стовпчиком.
+   key: якщо на дату лише один урок — це сама дата (для сумісності зі старими даними);
+   якщо уроків декілька — ключ включає ще й номер уроку (period), щоб стовпчики не зливались. */
+function getJournalLessonsForSubject(subject){
+  const lessons = [];
+  Object.keys(state.calendarized).forEach(dateStr=>{
+    const entries = state.calendarized[dateStr]
+      .filter(e=>normalizeText(e.subject)===normalizeText(subject))
+      .sort((a,b)=>(a.period||0)-(b.period||0));
+    entries.forEach(e=>{
+      const key = entries.length>1 ? `${dateStr}__p${e.period}` : dateStr;
+      lessons.push({ key, date: dateStr, period: e.period, topic: e.topic || '' });
+    });
+  });
+  lessons.sort((a,b)=> a.date===b.date ? (a.period-b.period) : (a.date<b.date?-1:1));
+  return lessons;
+}
+
+function countLessonsOnDate(lessons, dateStr){
+  return lessons.filter(l=>l.date===dateStr).length;
+}
+
+function getJournalTopicForKey(subject, key){
+  const lessons = getJournalLessonsForSubject(subject);
+  const match = lessons.find(l=>l.key===key);
+  return match ? match.topic : '';
+}
+
+function fmtDateFull(dateStr){
+  const d = new Date(dateStr+'T00:00:00');
+  if(isNaN(d)) return dateStr;
+  return `${d.getDate()} ${MONTH_NAMES[d.getMonth()].toLowerCase()}`;
+}
+
+function fmtDateShort(dateStr){
+  return `${dateStr.slice(8,10)}/${dateStr.slice(5,7)}`;
+}
+
+const JOURNAL_EXTRA_TYPES = {
+  thematic: 'Тематична',
+  notebook: 'За зошит',
+  other: 'Інша'
+};
+
+/* Впорядкований список стовпчиків журналу: уроки з календаря (можливо кілька на одну дату) +
+   додані вручну стовпчики без дати, вставлені у вказану позицію.
+   afterKey — точна позиція (одразу після конкретного уроку), afterDate лишається для сумісності
+   зі старими збереженими стовпчиками та для визначення семестру. */
+function buildJournalColumns(subject){
+  const lessons = getJournalLessonsForSubject(subject);
+  const j = ensureJournalSubject(subject);
+  const cols = [];
+  const lastKeyForDate = {};
+  lessons.forEach(l=>{ lastKeyForDate[l.date] = l.key; });
+  j.extraColumns.filter(ec=>!ec.afterKey && !ec.afterDate).forEach(ec=>cols.push({kind:'extra', col:ec}));
+  lessons.forEach(l=>{
+    cols.push({kind:'lesson', lesson:l});
+    j.extraColumns.filter(ec=>{
+      if(ec.afterKey) return ec.afterKey===l.key;
+      if(ec.afterDate) return ec.afterDate===l.date && lastKeyForDate[l.date]===l.key;
+      return false;
+    }).forEach(ec=>cols.push({kind:'extra', col:ec}));
+  });
+  return cols;
+}
+
+const JOURNAL_SUMMARY_COLS = [
+  {key:'tem', label:"Тематична"},
+  {key:'s1', label:'I семестр'},
+  {key:'s1c', label:'Скоригована'},
+  {key:'s2', label:'II семестр'},
+  {key:'s2c', label:'Скоригована'},
+  {key:'year', label:'Річна'}
+];
+
+function parseGradeNum(v){
+  const n = parseFloat(String(v||'').replace(',','.'));
+  return isNaN(n) ? null : n;
+}
+
+/* Середнє поточних оцінок від попередньої тематичної (або від початку) до цієї тематичної колонки */
+function calcThematicColumn(subject, colId){
+  const j = ensureJournalSubject(subject);
+  const cols = buildJournalColumns(subject);
+  const idx = cols.findIndex(c=>c.kind==='extra' && c.col.id===colId);
+  if(idx===-1) return;
+  let startIdx = 0;
+  for(let i=idx-1;i>=0;i--){
+    if(cols[i].kind==='extra' && cols[i].col.type==='thematic'){ startIdx = i+1; break; }
+  }
+  const lessonKeys = cols.slice(startIdx, idx).filter(c=>c.kind==='lesson').map(c=>c.lesson.key);
+  let filled = 0;
+  j.students.forEach(s=>{
+    const vals = lessonKeys.map(k=>parseGradeNum(j.grades[s.id] && j.grades[s.id][k])).filter(v=>v!==null);
+    if(vals.length){
+      const avg = vals.reduce((a,b)=>a+b,0)/vals.length;
+      if(!j.grades[s.id]) j.grades[s.id] = {};
+      j.grades[s.id][colId] = String(Math.round(avg));
+      filled++;
+    }
+  });
+  saveState();
+  renderJournalTab();
+  showToast(filled ? `Порахувано середнє для ${filled} учнів — за потреби відредагуйте вручну` : 'Немає поточних оцінок для розрахунку');
+}
+
+/* Пропозиція семестрової оцінки як середнє тематичних, без автоматичного виставлення (лише підказка в полі) */
+function semesterSuggestion(subject, studentId, semester){
+  const j = ensureJournalSubject(subject);
+  const cols = buildJournalColumns(subject);
+  const winter = state.settings.holidays.winter || {start:'',end:''};
+  const canSplit = !!(winter.start && winter.end);
+  const vals = [];
+  cols.forEach(c=>{
+    if(c.kind==='extra' && c.col.type==='thematic'){
+      let colSemester = 1;
+      if(canSplit && c.col.afterDate && c.col.afterDate >= winter.end) colSemester = 2;
+      if(!canSplit && semester===2) return; // без канікул не можемо визначити II семестр
+      if(colSemester===semester){
+        const v = parseGradeNum(j.grades[studentId] && j.grades[studentId][c.col.id]);
+        if(v!==null) vals.push(v);
+      }
+    }
+  });
+  if(!vals.length) return '';
+  return String(Math.round(vals.reduce((a,b)=>a+b,0)/vals.length));
+}
+
+function printJournalTable(subject){
+  if(!subject) return;
+  const j = ensureJournalSubject(subject);
+  const lessons = getJournalLessonsForSubject(subject);
+  if(!j.students.length){ showToast('Спершу введіть список класу'); return; }
+  if(!lessons.length){ showToast('Немає жодної дати уроку — спершу виконайте календаризацію теми'); return; }
+  const cols = buildJournalColumns(subject);
+  const dateHeaderHtml = cols.map(c=>{
+    if(c.kind==='lesson'){
+      const multi = lessons.filter(l=>l.date===c.lesson.date).length > 1;
+      return `<th>${fmtDateShort(c.lesson.date)}${multi ? `<br><span style="font-weight:400;font-size:8px;">ур.${c.lesson.period}</span>` : ''}</th>`;
+    }
+    const ec = c.col;
+    return `<th>${escapeHtml(ec.label)}</th>`;
+  }).join('');
+  const summaryHeaderHtml = JOURNAL_SUMMARY_COLS.map(col=>`<th>${escapeHtml(col.label)}</th>`).join('');
+  const rowsHtml = j.students.map((s,i)=>{
+    const cellsHtml = cols.map(c=>{
+      const key = c.kind==='lesson' ? c.lesson.key : c.col.id;
+      const val = (j.grades[s.id] && j.grades[s.id][key]) || '';
+      return `<td>${escapeHtml(val)}</td>`;
+    }).join('');
+    const summaryHtml = JOURNAL_SUMMARY_COLS.map(col=>{
+      const val = (j.summary[s.id] && j.summary[s.id][col.key]) || '';
+      return `<td>${escapeHtml(val)}</td>`;
+    }).join('');
+    return `<tr><td>${i+1}</td><td class="pj-name">${escapeHtml(s.name)}</td>${cellsHtml}${summaryHtml}</tr>`;
+  }).join('');
+  const html = `<!DOCTYPE html><html lang="uk"><head><meta charset="utf-8"><title>Журнал — ${escapeHtml(subject)}</title>
+<style>
+  @page{ size: A4 landscape; margin: 10mm; }
+  body{ font-family: Arial, Helvetica, sans-serif; color:#111; margin:0; padding:16px; }
+  h1{ font-size:16px; margin:0 0 4px; }
+  p.meta{ font-size:11px; color:#555; margin:0 0 14px; }
+  table{ border-collapse: collapse; width:100%; font-size:10px; }
+  th, td{ border:1px solid #333; padding:3px 4px; text-align:center; }
+  th{ background:#eee; font-weight:700; white-space:nowrap; }
+  td.pj-name{ text-align:left; white-space:nowrap; }
+  tbody tr:nth-child(even){ background:#fafafa; }
+  @media print{ body{ padding:0; } }
+</style>
+</head><body>
+  <h1>Журнал успішності — ${escapeHtml(subject)}</h1>
+  <p class="meta">Роздруковано ${new Date().toLocaleDateString('uk-UA')}</p>
+  <table>
+    <thead><tr><th>№<br>з/п</th><th>Прізвище та ім'я</th>${dateHeaderHtml}${summaryHeaderHtml}</tr></thead>
+    <tbody>${rowsHtml}</tbody>
+  </table>
+</body></html>`;
+  const w = window.open('', '_blank');
+  if(!w){ showToast('Браузер заблокував спливаюче вікно — дозвольте його для друку'); return; }
+  w.document.open();
+  w.document.write(html);
+  w.document.close();
+  w.focus();
+  setTimeout(()=>{ w.print(); }, 300);
+}
+
+function printSafetyJournal(){
+  const sessions = state.safety.journalSessions;
+  if(!sessions.length){ showToast('Журнал порожній — немає що друкувати'); return; }
+  let rowNum = 0;
+  const rowsHtml = sessions.map(sess=>{
+    const st = sess.students.length ? sess.students : [{ name: '—' }];
+    return st.map(stu=>{
+      rowNum++;
+      return `<tr>
+        <td>${rowNum}</td>
+        <td class="pj-name">${escapeHtml(stu.name)}</td>
+        <td>${sess.date ? sess.date.split('-').reverse().join('.') : '—'}</td>
+        <td>${escapeHtml(sess.className || '—')}</td>
+        <td>${escapeHtml(sess.type || '—')}</td>
+        <td class="pj-topic">${escapeHtml(sess.topic || '')}</td>
+      </tr>`;
+    }).join('');
+  }).join('');
+  const html = `<!DOCTYPE html><html lang="uk"><head><meta charset="utf-8"><title>Журнал реєстрації інструктажів</title>
+<style>
+  @page{ size: A4 portrait; margin: 12mm; }
+  body{ font-family: Arial, Helvetica, sans-serif; color:#111; margin:0; padding:16px; }
+  h1{ font-size:16px; margin:0 0 4px; }
+  p.meta{ font-size:11px; color:#555; margin:0 0 14px; }
+  table{ border-collapse: collapse; width:100%; font-size:11px; }
+  th, td{ border:1px solid #333; padding:4px 6px; text-align:center; vertical-align:top; }
+  th{ background:#eee; font-weight:700; }
+  td.pj-name, td.pj-topic{ text-align:left; }
+  tbody tr:nth-child(even){ background:#fafafa; }
+  @media print{ body{ padding:0; } }
+</style>
+</head><body>
+  <h1>Журнал реєстрації інструктажів з техніки безпеки</h1>
+  <p class="meta">Роздруковано ${new Date().toLocaleDateString('uk-UA')}</p>
+  <table>
+    <thead><tr><th>№<br>з/п</th><th>Прізвище та ім'я</th><th>Дата</th><th>Клас</th><th>Вид інструктажу</th><th>Тема</th></tr></thead>
+    <tbody>${rowsHtml}</tbody>
+  </table>
+</body></html>`;
+  const w = window.open('', '_blank');
+  if(!w){ showToast('Браузер заблокував спливаюче вікно — дозвольте його для друку'); return; }
+  w.document.open();
+  w.document.write(html);
+  w.document.close();
+  w.focus();
+  setTimeout(()=>{ w.print(); }, 300);
+}
+
+function renderJournalTab(){
+  const c = document.getElementById('content');
+  const subjects = Array.from(new Set([...getSubjectsInSchedule(), ...Object.keys(state.plans), ...Object.keys(state.journal)])).sort((a,b)=>a.localeCompare(b,'uk'));
+  if(!currentJournalSubject || !subjects.includes(currentJournalSubject)) currentJournalSubject = subjects[0] || null;
+
+  let studentsFormHtml = '';
+  let addColumnFormHtml = '';
+  let tableHtml = '';
+
+  if(currentJournalSubject){
+    const j = ensureJournalSubject(currentJournalSubject);
+    const lessons = getJournalLessonsForSubject(currentJournalSubject);
+    const studentsText = j.students.map(s=>s.name).join('\n');
+
+    studentsFormHtml = `
+      <div class="card">
+        <h2>Список класу — ${escapeHtml(currentJournalSubject)}</h2>
+        <div class="field">
+          <label for="journalStudentsInput">По одному учню на рядок, у тому порядку, як у класному журналі</label>
+          <textarea id="journalStudentsInput" style="min-height:200px;">${escapeHtml(studentsText)}</textarea>
+        </div>
+        <button class="btn btn-primary" id="saveJournalStudentsBtn" style="margin-top:10px;">Зберегти список класу</button>
+      </div>
+    `;
+
+    if(lessons.length){
+      addColumnFormHtml = `
+        <div class="card">
+          <h2>Додати стовпчик без дати</h2>
+          <p class="empty-hint" style="margin-top:-6px;">Для тематичної оцінки, оцінки за зошит тощо. Тематичну колонку можна порахувати як середнє поточних оцінок за допомогою кнопки «Порахувати» у її заголовку.</p>
+          <div class="row">
+            <div class="field" style="flex:1; min-width:180px;">
+              <label for="extraColLabel">Назва стовпчика</label>
+              <input type="text" id="extraColLabel" placeholder="Напр., Тем. №1">
+            </div>
+            <div class="field">
+              <label for="extraColType">Тип</label>
+              <select id="extraColType">
+                <option value="thematic">Тематична</option>
+                <option value="notebook">За зошит</option>
+                <option value="other">Інша</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="extraColPosition">Позиція</label>
+              <select id="extraColPosition">
+                <option value="">На початку</option>
+                ${lessons.map(l=>`<option value="${l.key}">Після ${fmtDateShort(l.date)}${countLessonsOnDate(lessons,l.date)>1?` (урок №${l.period})`:''}</option>`).join('')}
+              </select>
+            </div>
+            <button class="btn btn-amber" id="addExtraColBtn" style="align-self:flex-end;">+ Додати стовпчик</button>
+          </div>
+        </div>
+      `;
+    }
+
+    if(j.students.length){
+      if(!lessons.length){
+        tableHtml = `<div class="card"><p class="empty-hint">Для предмета «${escapeHtml(currentJournalSubject)}» ще немає жодної дати уроку в календарі. Спершу виконайте календаризацію теми на вкладці «Календарне планування» — дати з'являться в журналі автоматично.</p></div>`;
+      } else {
+        const cols = buildJournalColumns(currentJournalSubject);
+        tableHtml = `
+          <div class="card">
+            <div class="journal-head-row">
+              <h2>Журнал — ${escapeHtml(currentJournalSubject)}</h2>
+              <div class="journal-topic-hint" id="journalTopicHint">Оберіть клітинку з оцінкою — тут з'явиться тема уроку</div>
+              <button class="btn btn-ghost" id="printJournalBtn" title="Відкрити версію для друку">🖨 Друкувати</button>
+            </div>
+            <div class="journal-scroll">
+              <table class="journal-table">
+                <thead>
+                  <tr>
+                    <th class="jt-num">№<br>з/п</th>
+                    <th class="jt-name">Прізвище та ім'я</th>
+                    ${cols.map(c=>{
+                      if(c.kind==='lesson'){
+                        const multi = countLessonsOnDate(lessons, c.lesson.date) > 1;
+                        return `<th class="jt-date">${fmtDateShort(c.lesson.date)}${multi ? `<div class="jt-date-sub">ур.${c.lesson.period}</div>` : ''}</th>`;
+                      }
+                      const ec = c.col;
+                      return `<th class="jt-extra jt-extra-${ec.type}">
+                        <div class="jt-extra-label">${escapeHtml(ec.label)}</div>
+                        <div class="jt-extra-type">${JOURNAL_EXTRA_TYPES[ec.type]||''}</div>
+                        <div class="jt-extra-actions">
+                          ${ec.type==='thematic' ? `<button type="button" class="jt-extra-btn" data-calc="${ec.id}" title="Порахувати як середнє поточних">Σ</button>` : ''}
+                          <button type="button" class="jt-extra-btn jt-extra-del" data-delcol="${ec.id}" title="Видалити стовпчик">×</button>
+                        </div>
+                      </th>`;
+                    }).join('')}
+                    ${JOURNAL_SUMMARY_COLS.map(col=>`<th class="jt-summary">${col.label}</th>`).join('')}
+                  </tr>
+                </thead>
+                <tbody>
+                  ${j.students.map((s,i)=>`
+                    <tr>
+                      <td class="jt-num">${i+1}</td>
+                      <td class="jt-name">${escapeHtml(s.name)}</td>
+                      ${cols.map(c=>{
+                        if(c.kind==='lesson'){
+                          const k = c.lesson.key;
+                          return `<td class="jt-cell"><input type="text" maxlength="4" class="jt-input" data-student="${s.id}" data-lesson="${k}" value="${escapeHtml((j.grades[s.id]&&j.grades[s.id][k])||'')}"></td>`;
+                        }
+                        const ec = c.col;
+                        return `<td class="jt-cell jt-cell-extra-${ec.type}"><input type="text" maxlength="4" class="jt-input" data-student="${s.id}" data-extracol="${ec.id}" value="${escapeHtml((j.grades[s.id]&&j.grades[s.id][ec.id])||'')}"></td>`;
+                      }).join('')}
+                      ${JOURNAL_SUMMARY_COLS.map(col=>{
+                        const placeholder = (col.key==='s1') ? semesterSuggestion(currentJournalSubject, s.id, 1)
+                                          : (col.key==='s2') ? semesterSuggestion(currentJournalSubject, s.id, 2)
+                                          : '';
+                        return `<td class="jt-cell"><input type="text" maxlength="4" class="jt-input jt-input-summary" data-student="${s.id}" data-summary="${col.key}" placeholder="${placeholder}" value="${escapeHtml((j.summary[s.id]&&j.summary[s.id][col.key])||'')}"></td>`;
+                      }).join('')}
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+            <p class="empty-hint" style="margin-top:10px;">Оцінки зберігаються автоматично, коли ви залишаєте поле. Сіра підказка в полях «I семестр» / «II семестр» — пропозиція за середнім тематичних; учитель виставляє оцінку сам.</p>
+          </div>
+        `;
+      }
+    }
+  }
+
+  c.innerHTML = `
+    <div class="card">
+      <h2>Предмет</h2>
+      <div class="row">
+        <div class="field" style="flex:1; min-width:220px;">
+          <label for="journalSubjectSelect">Оберіть предмет</label>
+          <select id="journalSubjectSelect">
+            ${subjects.length ? subjects.map(s=>`<option value="${escapeHtml(s)}" ${s===currentJournalSubject?'selected':''}>${escapeHtml(s)}</option>`).join('') : `<option value="">Немає предметів</option>`}
+          </select>
+        </div>
+        ${currentJournalSubject ? `<button class="btn btn-ghost" id="deleteJournalSubjectBtn" style="align-self:flex-end; color:var(--danger);" title="Видалити предмет разом зі списком класу та журналом оцінок">🗑 Видалити предмет</button>` : ''}
+      </div>
+      ${!subjects.length ? `<p class="empty-hint">Спершу додайте предмети на вкладці «Розклад» або «Календарне планування».</p>` : ''}
+    </div>
+    ${studentsFormHtml}
+    ${addColumnFormHtml}
+    ${tableHtml}
+  `;
+
+  const sel = document.getElementById('journalSubjectSelect');
+  if(sel){
+    sel.onchange = ()=>{ currentJournalSubject = sel.value; renderJournalTab(); };
+  }
+  const deleteSubjectBtn = document.getElementById('deleteJournalSubjectBtn');
+  if(deleteSubjectBtn){
+    deleteSubjectBtn.onclick = ()=>{
+      const subj = currentJournalSubject;
+      if(!subj) return;
+      const ok = confirm(`Видалити предмет «${subj}» повністю — разом зі списком класу та журналом оцінок?\n\nЦю дію не можна скасувати. Якщо предмет усе ще є в розкладі чи календарному плануванні, він знову з'явиться в списку — але вже порожнім.`);
+      if(!ok) return;
+      delete state.journal[subj];
+      currentJournalSubject = null;
+      saveState();
+      renderJournalTab();
+      showToast(`Предмет «${subj}» видалено з журналу`);
+    };
+  }
+  function saveJournalStudentsFromInput(){
+    const ta = document.getElementById('journalStudentsInput');
+    if(!ta) return;
+    const lines = ta.value.split('\n').map(s=>s.trim()).filter(Boolean);
+    const j = ensureJournalSubject(currentJournalSubject);
+    const existingByName = new Map(j.students.map(s=>[normalizeText(s.name), s]));
+    j.students = lines.map(name=>{
+      const existing = existingByName.get(normalizeText(name));
+      if(existing) return existing;
+      return { id: Date.now().toString(36) + Math.random().toString(36).slice(2,6), name };
+    });
+    saveState();
+  }
+  const studentsTextarea = document.getElementById('journalStudentsInput');
+  if(studentsTextarea){
+    /* Автозбереження при виході з поля — щоб список не губився, якщо перемкнути вкладку,
+       не натиснувши кнопку «Зберегти список класу». */
+    studentsTextarea.addEventListener('blur', saveJournalStudentsFromInput);
+  }
+  const saveBtn = document.getElementById('saveJournalStudentsBtn');
+  if(saveBtn){
+    saveBtn.onclick = ()=>{
+      saveJournalStudentsFromInput();
+      renderJournalTab();
+      showToast('Список класу збережено');
+    };
+  }
+  const addColBtn = document.getElementById('addExtraColBtn');
+  if(addColBtn){
+    addColBtn.onclick = ()=>{
+      const label = document.getElementById('extraColLabel').value.trim();
+      if(!label){ showToast('Введіть назву стовпчика'); return; }
+      const type = document.getElementById('extraColType').value;
+      const afterKey = document.getElementById('extraColPosition').value;
+      const j = ensureJournalSubject(currentJournalSubject);
+      const lessonsNow = getJournalLessonsForSubject(currentJournalSubject);
+      const afterLesson = lessonsNow.find(l=>l.key===afterKey);
+      j.extraColumns.push({ id: 'col_' + Date.now().toString(36) + Math.random().toString(36).slice(2,6), label, type, afterKey: afterKey || '', afterDate: afterLesson ? afterLesson.date : '' });
+      saveState();
+      renderJournalTab();
+      showToast('Стовпчик додано');
+    };
+  }
+  c.querySelectorAll('[data-calc]').forEach(btn=>{
+    btn.onclick = ()=>calcThematicColumn(currentJournalSubject, btn.dataset.calc);
+  });
+  c.querySelectorAll('[data-delcol]').forEach(btn=>{
+    btn.onclick = ()=>{
+      const j = ensureJournalSubject(currentJournalSubject);
+      j.extraColumns = j.extraColumns.filter(ec=>ec.id!==btn.dataset.delcol);
+      saveState();
+      renderJournalTab();
+    };
+  });
+  const topicHintEl = document.getElementById('journalTopicHint');
+  const printJournalBtn = document.getElementById('printJournalBtn');
+  if(printJournalBtn){
+    printJournalBtn.onclick = ()=>printJournalTable(currentJournalSubject);
+  }
+  c.querySelectorAll('.jt-input[data-lesson]').forEach(inp=>{
+    inp.onchange = ()=>{
+      const j = ensureJournalSubject(currentJournalSubject);
+      const sid = inp.dataset.student, k = inp.dataset.lesson;
+      if(!j.grades[sid]) j.grades[sid] = {};
+      j.grades[sid][k] = inp.value.trim();
+      saveState();
+    };
+    inp.addEventListener('focus', ()=>{
+      if(!topicHintEl) return;
+      const k = inp.dataset.lesson;
+      const d = k.split('__')[0];
+      const topic = getJournalTopicForKey(currentJournalSubject, k);
+      topicHintEl.textContent = topic ? `${fmtDateFull(d)}: ${topic}` : `${fmtDateFull(d)}: тему не вказано в календарному плануванні`;
+      topicHintEl.classList.add('active');
+    });
+  });
+  c.querySelectorAll('.jt-input-summary, .jt-input[data-extracol]').forEach(inp=>{
+    inp.addEventListener('focus', ()=>{
+      if(!topicHintEl) return;
+      topicHintEl.textContent = 'Оберіть клітинку з оцінкою — тут з\'явиться тема уроку';
+      topicHintEl.classList.remove('active');
+    });
+  });
+  c.querySelectorAll('.jt-input[data-extracol]').forEach(inp=>{
+    inp.onchange = ()=>{
+      const j = ensureJournalSubject(currentJournalSubject);
+      const sid = inp.dataset.student, colId = inp.dataset.extracol;
+      if(!j.grades[sid]) j.grades[sid] = {};
+      j.grades[sid][colId] = inp.value.trim();
+      saveState();
+    };
+  });
+  c.querySelectorAll('.jt-input-summary').forEach(inp=>{
+    inp.onchange = ()=>{
+      const j = ensureJournalSubject(currentJournalSubject);
+      const sid = inp.dataset.student, key = inp.dataset.summary;
+      if(!j.summary[sid]) j.summary[sid] = {};
+      j.summary[sid][key] = inp.value.trim();
+      saveState();
+    };
+  });
+}
+
+/* ====================== КЛАСНИЙ КЕРІВНИК ====================== */
+function renderClassTeacherTab(){
+  const c = document.getElementById('content');
+  const ct = state.classTeacher;
+  const rosterRows = ct.roster.map(r=>`
+    <div class="roster-row" data-id="${r.id}">
+      <input type="text" class="roster-name" placeholder="ПІБ учня" value="${escapeHtml(r.name||'')}">
+      <input type="text" class="roster-parent" placeholder="Батьки / опікуни" value="${escapeHtml(r.parentName||'')}">
+      <input type="text" class="roster-phone" placeholder="Телефон" value="${escapeHtml(r.parentPhone||'')}">
+      <button class="btn btn-danger btn-icon roster-delete" aria-label="Видалити учня">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>`).join('');
+
+  const eventsSorted = [...ct.events].sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+
+  c.innerHTML = `
+    <div class="card">
+      <h2>Загальні відомості</h2>
+      <div class="row">
+        <div class="field">
+          <label for="ctClassName">Клас</label>
+          <input type="text" id="ctClassName" placeholder="Напр., 9-А" value="${escapeHtml(ct.className||'')}">
+        </div>
+        <div class="field">
+          <label for="ctCabinet">Кабінет</label>
+          <input type="text" id="ctCabinet" placeholder="Напр., 214" value="${escapeHtml(ct.cabinet||'')}">
+        </div>
+      </div>
+      <button class="btn btn-primary" id="ctSaveInfoBtn" style="margin-top:12px;">Зберегти</button>
+    </div>
+
+    <div class="card">
+      <h2>Склад класу (${ct.roster.length})</h2>
+      <div class="roster-header">
+        <span>ПІБ учня</span><span>Батьки / опікуни</span><span>Телефон</span><span></span>
+      </div>
+      <div id="rosterList">${rosterRows || '<p class="empty-hint">Список порожній. Додайте першого учня нижче.</p>'}</div>
+      <button class="btn btn-amber" id="ctAddRosterBtn" style="margin-top:10px;">+ Додати учня</button>
+    </div>
+
+    <div class="card">
+      <h2>Виховна робота — новий захід</h2>
+      <div class="row">
+        <div class="field" style="flex:1; min-width:220px;">
+          <label for="ctEventTitle">Назва заходу</label>
+          <input type="text" id="ctEventTitle" placeholder="Напр., Класна година «Безпека в інтернеті»">
+        </div>
+        <div class="field">
+          <label for="ctEventDate">Дата</label>
+          <input type="date" id="ctEventDate">
+        </div>
+      </div>
+      <div class="field" style="margin-top:10px;">
+        <label for="ctEventNotes">Примітка</label>
+        <textarea id="ctEventNotes" style="min-height:70px;"></textarea>
+      </div>
+      <div class="row" style="margin-top:12px;">
+        <button class="btn btn-primary" id="ctAddEventBtn">+ Додати захід</button>
+        <button class="btn btn-ghost" id="ctGenerateEventBtn">Згенерувати промт для розробки заходу</button>
+        <button class="btn btn-ghost" id="ctCopyEventPromptBtn" style="display:none;">Копіювати промт</button>
+      </div>
+      <div id="ctEventGenWrap"></div>
+    </div>
+
+    <div class="card">
+      <h2>Заплановані та проведені заходи (${eventsSorted.length})</h2>
+      ${eventsSorted.length ? eventsSorted.map(e=>`
+        <div class="period-item">
+          <div class="period-item-head">
+            <div class="period-item-title">${escapeHtml(e.title)}</div>
+            <div class="period-item-actions">
+              <button class="btn btn-danger btn-icon" data-event-delete="${e.id}" aria-label="Видалити">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+              </button>
+            </div>
+          </div>
+          ${e.date ? `<div class="period-item-dates mono">${e.date.split('-').reverse().join('.')}</div>` : ''}
+          ${e.notes ? `<div class="period-item-content">${escapeHtml(e.notes).replace(/\n/g,'<br>')}</div>` : ''}
+        </div>`).join('') : `<p class="empty-hint">Заходів ще не заплановано.</p>`}
+    </div>
+  `;
+
+  document.getElementById('ctSaveInfoBtn').onclick = ()=>{
+    ct.className = document.getElementById('ctClassName').value.trim();
+    ct.cabinet = document.getElementById('ctCabinet').value.trim();
+    saveState();
+    showToast('Збережено');
+  };
+
+  document.getElementById('ctAddRosterBtn').onclick = ()=>{
+    ct.roster.push({ id: Date.now().toString(36)+Math.random().toString(36).slice(2,6), name:'', parentName:'', parentPhone:'' });
+    saveState();
+    renderClassTeacherTab();
+  };
+
+  c.querySelectorAll('.roster-row').forEach(row=>{
+    const id = row.dataset.id;
+    const rec = ct.roster.find(r=>r.id===id);
+    if(!rec) return;
+    row.querySelector('.roster-name').onchange = (e)=>{ rec.name = e.target.value.trim(); saveState(); };
+    row.querySelector('.roster-parent').onchange = (e)=>{ rec.parentName = e.target.value.trim(); saveState(); };
+    row.querySelector('.roster-phone').onchange = (e)=>{ rec.parentPhone = e.target.value.trim(); saveState(); };
+    row.querySelector('.roster-delete').onclick = ()=>{
+      ct.roster = ct.roster.filter(r=>r.id!==id);
+      saveState();
+      renderClassTeacherTab();
+    };
+  });
+
+  document.getElementById('ctAddEventBtn').onclick = ()=>{
+    const title = document.getElementById('ctEventTitle').value.trim();
+    if(!title){ showToast('Вкажіть назву заходу'); return; }
+    const date = document.getElementById('ctEventDate').value;
+    const notes = document.getElementById('ctEventNotes').value.trim();
+    ct.events.push({ id: Date.now().toString(36), title, date, notes });
+    saveState();
+    renderClassTeacherTab();
+    showToast('Захід додано');
+  };
+  document.getElementById('ctGenerateEventBtn').onclick = ()=>{
+    const title = document.getElementById('ctEventTitle').value.trim();
+    if(!title){ showToast('Спершу введіть назву заходу'); return; }
+    const date = document.getElementById('ctEventDate').value;
+    const notes = document.getElementById('ctEventNotes').value.trim();
+    const wrap = document.getElementById('ctEventGenWrap');
+    const copyBtn = document.getElementById('ctCopyEventPromptBtn');
+
+    const classLine = ct.className ? ct.className : 'клас не вказано — врахуй загальний шкільний вік';
+    const dateLine = date ? `\nДата проведення: ${date.split('-').reverse().join('.')}.` : '';
+    const notesBlock = notes ? `\n\nДодаткові побажання від класного керівника, які обов'язково врахуй:\n"""\n${notes}\n"""\n` : '';
+
+    const promptText = `Ти — досвідчений класний керівник і методист з виховної роботи в українській школі. Розроби ДЕТАЛЬНИЙ план виховного заходу «${title}» для класу: ${classLine}.${dateLine}
+${notesBlock}
+Обов'язково структуруй відповідь заголовками Markdown (##) у такому порядку:
+## Мета заходу
+## Завдання — виховні, розвивальні, освітні (окремими пунктами)
+## Обладнання та матеріали
+## Хід заходу — з підпунктами: Організаційний момент; Вступна частина (мотивація, актуалізація уваги учнів); Основна частина — випиши ПОВНИЙ ТЕКСТ щонайменше 2-3 конкретних активностей, ігор, вправ чи тем для обговорення (з чіткими інструкціями для проведення, а не лише назвами); Підсумок і рефлексія — з конкретними запитаннями до учнів.
+## Рекомендації щодо продовження теми — домашнє завдання, наступні кроки або поради батькам, якщо доречно.
+
+Пиши українською мовою, максимально конкретно і практично, з урахуванням вікових особливостей учнів. Уникай загальних фраз на кшталт "провести бесіду на тему" — прописуй сам зміст бесіди чи активності. Не додавай вступних слів перед першим заголовком і не повторюйся.`;
+
+    wrap.innerHTML = `
+      <div class="field" style="margin-top:14px;">
+        <label for="ctEventPromptOutput">Готовий промт — відредагуйте за потреби, скопіюйте і вставте у свій ІІ (ChatGPT, Gemini, Claude тощо)</label>
+        <textarea id="ctEventPromptOutput" style="width:100%; min-height:280px; font-size:13px; line-height:1.5;">${escapeHtml(promptText)}</textarea>
+      </div>
+    `;
+    copyBtn.style.display = 'inline-flex';
+    copyBtn.onclick = ()=>copyTextToClipboard(document.getElementById('ctEventPromptOutput').value);
+  };
+  c.querySelectorAll('[data-event-delete]').forEach(btn=>{
+    btn.onclick = ()=>{
+      ct.events = ct.events.filter(e=>e.id!==btn.dataset.eventDelete);
+      saveState();
+      renderClassTeacherTab();
+    };
+  });
+}
+
+/* ====================== ДОКУМЕНТИ ====================== */
+const DOCUMENT_CATEGORIES = ['Календарне планування', 'Класний журнал', 'Звітність', 'Накази/розпорядження', 'Атестація', 'Інше'];
+
+function renderDocumentsTab(){
+  const c = document.getElementById('content');
+  const list = [...state.documents].sort((a,b)=>{
+    if(!!a.done !== !!b.done) return a.done ? 1 : -1;
+    return (a.deadline||'').localeCompare(b.deadline||'');
+  });
+  c.innerHTML = `
+    <div class="card">
+      <h2>Додати документ</h2>
+      <div class="row">
+        <div class="field" style="flex:1; min-width:200px;">
+          <label for="docTitleInput">Назва документа</label>
+          <input type="text" id="docTitleInput" placeholder="Напр., Календарно-тематичний план">
+        </div>
+        <div class="field">
+          <label for="docCategorySelect">Категорія</label>
+          <select id="docCategorySelect">
+            ${DOCUMENT_CATEGORIES.map(cat=>`<option value="${escapeHtml(cat)}">${escapeHtml(cat)}</option>`).join('')}
+          </select>
+        </div>
+        <div class="field">
+          <label for="docDeadlineInput">Термін</label>
+          <input type="date" id="docDeadlineInput">
+        </div>
+      </div>
+      <div class="field" style="margin-top:10px;">
+        <label for="docNotesInput">Примітка</label>
+        <textarea id="docNotesInput" style="min-height:70px;" placeholder="Куди подати, кому, які особливості..."></textarea>
+      </div>
+      <button class="btn btn-primary" id="addDocBtn" style="margin-top:12px;">+ Додати документ</button>
+    </div>
+    <div class="card">
+      <h2>Реєстр документів (${list.length})</h2>
+      ${list.length ? list.map(d=>`
+        <div class="period-item">
+          <div class="period-item-head">
+            <label class="doc-check">
+              <input type="checkbox" data-toggle="${d.id}" ${d.done?'checked':''}>
+              <span class="period-item-title" style="${d.done?'text-decoration:line-through; opacity:.6;':''}">${escapeHtml(d.title)} ${d.category ? `<span class="status-badge status-future">${escapeHtml(d.category)}</span>` : ''}</span>
+            </label>
+            <div class="period-item-actions">
+              <button class="btn btn-danger btn-icon" data-delete="${d.id}" aria-label="Видалити">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+              </button>
+            </div>
+          </div>
+          ${d.deadline ? `<div class="period-item-dates mono">Термін: ${d.deadline.split('-').reverse().join('.')}</div>` : ''}
+          ${d.notes ? `<div class="period-item-content">${escapeHtml(d.notes).replace(/\n/g,'<br>')}</div>` : ''}
+        </div>`).join('') : `<p class="empty-hint">Реєстр порожній. Додайте перший документ вище.</p>`}
+    </div>
+  `;
+
+  document.getElementById('addDocBtn').onclick = ()=>{
+    const title = document.getElementById('docTitleInput').value.trim();
+    if(!title){ showToast('Вкажіть назву документа'); return; }
+    const category = document.getElementById('docCategorySelect').value;
+    const deadline = document.getElementById('docDeadlineInput').value;
+    const notes = document.getElementById('docNotesInput').value.trim();
+    state.documents.push({ id: Date.now().toString(36), title, category, deadline, notes, done:false });
+    saveState();
+    renderDocumentsTab();
+    showToast('Документ додано');
+  };
+  c.querySelectorAll('[data-toggle]').forEach(cb=>{
+    cb.onchange = ()=>{
+      const doc = state.documents.find(d=>d.id===cb.dataset.toggle);
+      if(doc){ doc.done = cb.checked; saveState(); renderDocumentsTab(); }
+    };
+  });
+  c.querySelectorAll('[data-delete]').forEach(btn=>{
+    btn.onclick = ()=>{
+      state.documents = state.documents.filter(d=>d.id!==btn.dataset.delete);
+      saveState();
+      renderDocumentsTab();
+    };
+  });
+}
+
+/* ====================== ПОЗАКЛАСНА РОБОТА ====================== */
+let currentExtracurricularCat = 'olympiad';
+const EXTRACURRICULAR_LEVELS = ['Шкільний', 'Районний/Міський', 'Обласний', 'Всеукраїнський', 'Міжнародний'];
+
+function extracurricularStatus(dateStr){
+  if(!dateStr) return {label:'', cls:''};
+  const today = todayStr();
+  if(dateStr < today) return {label:'Минула', cls:'status-past'};
+  if(dateStr === today) return {label:'Сьогодні', cls:'status-current'};
+  return {label:'Майбутня', cls:'status-future'};
+}
+
+function renderExtracurricularTab(){
+  const c = document.getElementById('content');
+  const cat = currentExtracurricularCat;
+  const list = [...(state.extracurricular[cat]||[])].sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+  const isMan = cat === 'man';
+
+  c.innerHTML = `
+    <div class="card">
+      <div class="row" style="gap:8px;">
+        ${Object.keys(EXTRACURRICULAR_CATEGORIES).map(k=>`<button type="button" class="day-pill ec-cat-pill ${k===cat?'active':''}" data-cat="${k}">${EXTRACURRICULAR_CATEGORIES[k]}</button>`).join('')}
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Додати запис — ${EXTRACURRICULAR_CATEGORIES[cat]}</h2>
+      <div class="row">
+        <div class="field" style="flex:1; min-width:200px;">
+          <label for="ecTitleInput">${isMan ? 'Тема наукової роботи' : 'Назва'}</label>
+          <input type="text" id="ecTitleInput" placeholder="${isMan ? 'Напр., Вплив кольору на швидкість реакції людини' : 'Напр., Олімпіада з математики'}">
+        </div>
+        <div class="field">
+          <label for="ecDateInput">Дата проведення</label>
+          <input type="date" id="ecDateInput">
+        </div>
+        <div class="field">
+          <label for="ecLevelSelect">Рівень</label>
+          <select id="ecLevelSelect">
+            <option value="">— не вказано —</option>
+            ${EXTRACURRICULAR_LEVELS.map(l=>`<option value="${l}">${l}</option>`).join('')}
+          </select>
+        </div>
+        <div class="field" style="min-width:160px;">
+          <label for="ecSubjectInput">Предмет</label>
+          <input type="text" id="ecSubjectInput" placeholder="Напр., Математика">
+        </div>
+      </div>
+      <div class="field" style="margin-top:10px;">
+        <label for="ecNotesInput">Примітка</label>
+        <textarea id="ecNotesInput" style="min-height:70px;" placeholder="${isMan ? 'Учень(-иця), науковий керівник, секція...' : 'Учасники, результати, особливості...'}"></textarea>
+      </div>
+      <div class="row" style="margin-top:12px;">
+        <button class="btn btn-primary" id="ecAddBtn">+ Додати запис</button>
+        ${isMan ? `<button class="btn btn-ghost" id="ecGenManBtn">Згенерувати промт для роботи</button>
+        <button class="btn btn-ghost" id="ecCopyManPromptBtn" style="display:none;">Копіювати промт</button>` : ''}
+      </div>
+      ${isMan ? `<div id="ecManGenWrap"></div>` : ''}
+    </div>
+
+    <div class="card">
+      <h2>${EXTRACURRICULAR_CATEGORIES[cat]} — записи (${list.length})</h2>
+      <p class="empty-hint" style="margin-top:-6px;">Дата проведення відображається червоним у «Календарі», а нагадування з'являється у списку найближчих подій.</p>
+      ${list.length ? list.map(item=>{
+        const st = extracurricularStatus(item.date);
+        return `
+        <div class="period-item">
+          <div class="period-item-head">
+            <div class="period-item-title">${escapeHtml(item.title)} ${st.label ? `<span class="status-badge ${st.cls}">${st.label}</span>` : ''}${item.level ? `<span class="status-badge status-future" style="background:rgba(255,93,108,.15); color:var(--danger);">${escapeHtml(item.level)}</span>` : ''}</div>
+            <div class="period-item-actions">
+              <button class="btn btn-danger btn-icon" data-ec-delete="${item.id}" aria-label="Видалити">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+              </button>
+            </div>
+          </div>
+          ${item.date || item.subject ? `<div class="period-item-dates mono">${item.date ? item.date.split('-').reverse().join('.') : ''}${item.date && item.subject ? ' · ' : ''}${item.subject ? escapeHtml(item.subject) : ''}</div>` : ''}
+          ${item.notes ? `<div class="period-item-content">${escapeHtml(item.notes).replace(/\n/g,'<br>')}</div>` : ''}
+        </div>`;
+      }).join('') : `<p class="empty-hint">Поки що немає жодного запису.</p>`}
+    </div>
+  `;
+
+  c.querySelectorAll('.ec-cat-pill').forEach(pill=>{
+    pill.onclick = ()=>{ currentExtracurricularCat = pill.dataset.cat; renderExtracurricularTab(); };
+  });
+
+  document.getElementById('ecAddBtn').onclick = ()=>{
+    const title = document.getElementById('ecTitleInput').value.trim();
+    if(!title){ showToast('Вкажіть назву'); return; }
+    const date = document.getElementById('ecDateInput').value;
+    const level = document.getElementById('ecLevelSelect').value;
+    const subject = document.getElementById('ecSubjectInput').value.trim();
+    const notes = document.getElementById('ecNotesInput').value.trim();
+    state.extracurricular[cat].push({ id: Date.now().toString(36)+Math.random().toString(36).slice(2,6), title, date, level, subject, notes });
+    saveState();
+    renderExtracurricularTab();
+    showToast('Запис додано');
+  };
+  c.querySelectorAll('[data-ec-delete]').forEach(btn=>{
+    btn.onclick = ()=>{
+      state.extracurricular[cat] = state.extracurricular[cat].filter(i=>i.id!==btn.dataset.ecDelete);
+      saveState();
+      renderExtracurricularTab();
+    };
+  });
+
+  const genManBtn = document.getElementById('ecGenManBtn');
+  if(genManBtn){
+    genManBtn.onclick = ()=>{
+      const title = document.getElementById('ecTitleInput').value.trim();
+      if(!title){ showToast('Спершу введіть тему наукової роботи'); return; }
+      const subject = document.getElementById('ecSubjectInput').value.trim();
+      const notes = document.getElementById('ecNotesInput').value.trim();
+      const wrap = document.getElementById('ecManGenWrap');
+      const copyBtn = document.getElementById('ecCopyManPromptBtn');
+
+      const subjectLine = subject ? `Секція/предмет МАН: ${subject}.` : '';
+      const notesBlock = notes ? `\n\nДодаткова інформація, яку обов'язково врахуй:\n"""\n${notes}\n"""\n` : '';
+
+      const promptText = `Ти — досвідчений науковий керівник МАН (Мала академія наук України). Допоможи учню(-иці) розробити структуру та зміст науково-дослідницької роботи на тему «${title}». ${subjectLine}
+${notesBlock}
+Обов'язково структуруй відповідь заголовками Markdown (##) у такому порядку:
+## Актуальність теми
+## Мета та завдання дослідження
+## Об'єкт і предмет дослідження
+## Методи дослідження
+## Розділ 1. Теоретичні основи — випиши розгорнутий план з 2-3 підпунктів і короткий зміст кожного
+## Розділ 2. Практична (дослідницька) частина — опиши, яке дослідження/експеримент/аналіз варто провести, які дані зібрати, як їх обробити й представити
+## Висновки — сформулюй очікувані висновки на основі результатів дослідження
+## Список використаних джерел — приклад оформлення 3-5 типових джерел за темою (без вигаданих конкретних авторів чи назв, лише зразок оформлення)
+
+Пиши українською мовою, науковим стилем, конкретно і структуровано, з урахуванням вимог до учнівських науково-дослідницьких робіт МАН. Не додавай вступних слів перед першим заголовком.`;
+
+      wrap.innerHTML = `
+        <div class="field" style="margin-top:14px;">
+          <label for="ecManPromptOutput">Готовий промт — відредагуйте за потреби, скопіюйте і вставте у свій ІІ (ChatGPT, Gemini, Claude тощо)</label>
+          <textarea id="ecManPromptOutput" style="width:100%; min-height:300px; font-size:13px; line-height:1.5;">${escapeHtml(promptText)}</textarea>
+        </div>
+      `;
+      copyBtn.style.display = 'inline-flex';
+      copyBtn.onclick = ()=>copyTextToClipboard(document.getElementById('ecManPromptOutput').value);
+    };
+  }
+}
+
+/* ====================== ТБ і ОБЖ ====================== */
+const SAFETY_BRIEFING_TYPES = ['Вступний', 'Первинний', 'Позаплановий', 'Цільовий', 'Перед канікулами', 'Про безпеку на воді/льоду', 'Протипожежний', 'Інше'];
+
+function renderSafetyTab(){
+  const c = document.getElementById('content');
+  const briefings = [...state.safety.briefings].sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  const sessions = state.safety.journalSessions;
+  const totalRows = sessions.reduce((sum,sess)=>sum+(sess.students.length||1),0);
+
+  c.innerHTML = `
+    <div class="card">
+      <h2>Додати інструктаж</h2>
+      <div class="row">
+        <div class="field" style="flex:1; min-width:200px;">
+          <label for="sbTitleInput">Назва / тема інструктажу</label>
+          <input type="text" id="sbTitleInput" placeholder="Напр., Інструктаж з ОБЖ перед осінніми канікулами">
+        </div>
+        <div class="field">
+          <label for="sbTypeSelect">Вид</label>
+          <select id="sbTypeSelect">
+            ${SAFETY_BRIEFING_TYPES.map(t=>`<option value="${t}">${t}</option>`).join('')}
+          </select>
+        </div>
+        <div class="field">
+          <label for="sbDateInput">Дата</label>
+          <input type="date" id="sbDateInput">
+        </div>
+      </div>
+      <div class="field" style="margin-top:10px;">
+        <label for="sbNotesInput">Примітка</label>
+        <textarea id="sbNotesInput" style="min-height:70px;" placeholder="Зміст, номер журналу, підстава..."></textarea>
+      </div>
+      <button class="btn btn-primary" id="sbAddBtn" style="margin-top:12px;">+ Додати інструктаж</button>
+    </div>
+
+    <div class="card">
+      <h2>Реєстр інструктажів (${briefings.length})</h2>
+      ${briefings.length ? briefings.map(b=>`
+        <div class="period-item">
+          <div class="period-item-head">
+            <div class="period-item-title">${escapeHtml(b.title)} ${b.type ? `<span class="status-badge status-future">${escapeHtml(b.type)}</span>` : ''}</div>
+            <div class="period-item-actions">
+              <button class="btn btn-danger btn-icon" data-sb-delete="${b.id}" aria-label="Видалити">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+              </button>
+            </div>
+          </div>
+          ${b.date ? `<div class="period-item-dates mono">${b.date.split('-').reverse().join('.')}</div>` : ''}
+          ${b.notes ? `<div class="period-item-content">${escapeHtml(b.notes).replace(/\n/g,'<br>')}</div>` : ''}
+        </div>`).join('') : `<p class="empty-hint">Реєстр порожній. Додайте перший інструктаж вище.</p>`}
+    </div>
+
+    <div class="card">
+      <h2>Журнал реєстрації інструктажів</h2>
+      <p class="empty-hint" style="margin-top:-6px;">Список учнів вводьте тут окремо для кожного запису — він не пов'язаний зі «Списком класу» на вкладці «Класний керівник». Кожен новий запис (дата + клас + вид інструктажу + список) додається в журнал одразу за попереднім, а нумерація рядків наскрізна — без розриву при переході до іншого класу.</p>
+      <div class="row">
+        <div class="field">
+          <label for="sjDateInput">Дата</label>
+          <input type="date" id="sjDateInput" value="${safetySessionDraft.date}">
+        </div>
+        <div class="field" style="flex:1; min-width:140px;">
+          <label for="sjClassInput">Клас</label>
+          <input type="text" id="sjClassInput" placeholder="Напр., 5-А" value="${escapeHtml(safetySessionDraft.className)}">
+        </div>
+        <div class="field" style="flex:1; min-width:180px;">
+          <label for="sjTypeSelect">Вид інструктажу</label>
+          <select id="sjTypeSelect">
+            ${SAFETY_BRIEFING_TYPES.map(t=>`<option value="${t}" ${safetySessionDraft.type===t?'selected':''}>${t}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+      <div class="field" style="margin-top:10px;">
+        <label for="sjTopicInput">Тема / зміст інструктажу (необов'язково)</label>
+        <input type="text" id="sjTopicInput" placeholder="Напр., Правила поведінки в кабінеті" value="${escapeHtml(safetySessionDraft.topic)}">
+      </div>
+      <div class="field" style="margin-top:10px;">
+        <label for="sjStudentsInput">Список учнів — по одному на рядок, у порядку журналу</label>
+        <textarea id="sjStudentsInput" style="min-height:160px;" placeholder="Прізвище та ім'я першого учня&#10;Прізвище та ім'я другого учня...">${escapeHtml(safetySessionDraft.studentsText)}</textarea>
+      </div>
+      <button class="btn btn-amber" id="sjAddSessionBtn" style="margin-top:10px;">+ Додати запис до журналу</button>
+    </div>
+    <p class="empty-hint" style="margin:-6px 0 0;">Незавершений запис зберігається автоматично, поки ви не перезавантажите сторінку — можна спокійно перемикатись між вкладками.</p>
+
+    <div class="card">
+      <div class="journal-head-row">
+        <h2>Журнал інструктажів (${totalRows} ${totalRows===1?'запис':'записів'})</h2>
+        ${sessions.length ? `<button class="btn btn-ghost" id="printSafetyJournalBtn" title="Відкрити версію для друку">🖨 Друкувати</button>` : ''}
+      </div>
+      ${!sessions.length ? `<p class="empty-hint">Журнал порожній. Додайте перший запис вище — дату, клас, вид інструктажу та список учнів.</p>` : `
+      <div class="journal-scroll" style="margin-top:12px;">
+        <table class="sj-journal-table">
+          <thead>
+            <tr>
+              <th class="sj-num">№<br>з/п</th>
+              <th>Прізвище та ім'я учня</th>
+              <th>Дата</th>
+              <th>Клас</th>
+              <th>Вид інструктажу</th>
+              <th>Тема</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            ${(()=>{
+              let rowNum = 0;
+              return sessions.map(sess=>{
+                const st = sess.students.length ? sess.students : [{id:'', name:'—'}];
+                return st.map((stu, idx)=>{
+                  rowNum++;
+                  const firstRow = idx===0;
+                  const rowspan = st.length;
+                  return `<tr>
+                    <td class="sj-num">${rowNum}</td>
+                    <td>${escapeHtml(stu.name)} ${stu.id ? `<button type="button" class="sj-del-row-btn" data-sj-del-student="${sess.id}:${stu.id}" title="Прибрати учня із запису">×</button>` : ''}</td>
+                    <td class="sj-meta">${sess.date ? sess.date.split('-').reverse().join('.') : '—'}</td>
+                    <td class="sj-meta">${escapeHtml(sess.className||'—')}</td>
+                    <td class="sj-meta">${escapeHtml(sess.type||'—')}</td>
+                    <td class="sj-meta">${escapeHtml(sess.topic||'')}</td>
+                    ${firstRow ? `<td class="sj-actions" rowspan="${rowspan}"><button type="button" class="sj-del-row-btn" data-sj-del-session="${sess.id}" title="Видалити весь запис">Видалити</button></td>` : ''}
+                  </tr>`;
+                }).join('');
+              }).join('');
+            })()}
+          </tbody>
+        </table>
+      </div>
+      `}
+    </div>
+  `;
+
+  document.getElementById('sbAddBtn').onclick = ()=>{
+    const title = document.getElementById('sbTitleInput').value.trim();
+    if(!title){ showToast('Вкажіть назву інструктажу'); return; }
+    const type = document.getElementById('sbTypeSelect').value;
+    const date = document.getElementById('sbDateInput').value;
+    const notes = document.getElementById('sbNotesInput').value.trim();
+    state.safety.briefings.push({ id: Date.now().toString(36)+Math.random().toString(36).slice(2,6), title, type, date, notes });
+    saveState();
+    renderSafetyTab();
+    showToast('Інструктаж додано');
+  };
+  c.querySelectorAll('[data-sb-delete]').forEach(btn=>{
+    btn.onclick = ()=>{
+      state.safety.briefings = state.safety.briefings.filter(b=>b.id!==btn.dataset.sbDelete);
+      saveState();
+      renderSafetyTab();
+    };
+  });
+
+  ['sjDateInput','sjClassInput','sjTypeSelect','sjTopicInput','sjStudentsInput'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(!el) return;
+    el.addEventListener('input', ()=>{
+      safetySessionDraft = {
+        date: document.getElementById('sjDateInput').value,
+        className: document.getElementById('sjClassInput').value,
+        type: document.getElementById('sjTypeSelect').value,
+        topic: document.getElementById('sjTopicInput').value,
+        studentsText: document.getElementById('sjStudentsInput').value
+      };
+    });
+  });
+
+  const printSafetyBtn = document.getElementById('printSafetyJournalBtn');
+  if(printSafetyBtn){
+    printSafetyBtn.onclick = printSafetyJournal;
+  }
+  document.getElementById('sjAddSessionBtn').onclick = ()=>{
+    const date = document.getElementById('sjDateInput').value;
+    const className = document.getElementById('sjClassInput').value.trim();
+    const type = document.getElementById('sjTypeSelect').value;
+    const topic = document.getElementById('sjTopicInput').value.trim();
+    const lines = document.getElementById('sjStudentsInput').value.split('\n').map(s=>s.trim()).filter(Boolean);
+    if(!className){ showToast('Вкажіть клас'); return; }
+    if(!lines.length){ showToast('Введіть список учнів'); return; }
+    const students = lines.map(name=>({ id: 'sjs_'+Date.now().toString(36)+Math.random().toString(36).slice(2,6), name }));
+    state.safety.journalSessions.push({ id: 'sj_'+Date.now().toString(36)+Math.random().toString(36).slice(2,6), date, className, type, topic, students });
+    safetySessionDraft = { date: '', className: '', type: '', topic: '', studentsText: '' };
+    saveState();
+    renderSafetyTab();
+    showToast('Запис додано до журналу');
+  };
+  c.querySelectorAll('[data-sj-del-session]').forEach(btn=>{
+    btn.onclick = ()=>{
+      state.safety.journalSessions = state.safety.journalSessions.filter(s=>s.id!==btn.dataset.sjDelSession);
+      saveState();
+      renderSafetyTab();
+      showToast('Запис видалено');
+    };
+  });
+  c.querySelectorAll('[data-sj-del-student]').forEach(btn=>{
+    btn.onclick = ()=>{
+      const [sessId, studId] = btn.dataset.sjDelStudent.split(':');
+      const sess = state.safety.journalSessions.find(s=>s.id===sessId);
+      if(sess) sess.students = sess.students.filter(st=>st.id!==studId);
+      saveState();
+      renderSafetyTab();
+    };
+  });
+}
+
+/* ====================== АТЕСТАЦІЯ ====================== */
+function attestationFileKey(id){ return `attestation_file_${id}`; }
+
+function fileIconSvg(mimeType){
+  if(mimeType && mimeType.startsWith('image/')){
+    return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>`;
+  }
+  return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>`;
+}
+
+function renderAttestationCategory(category, label){
+  const items = [...state.attestation[category]].sort((a,b)=>(b.issuedDate||'').localeCompare(a.issuedDate||''));
+  return `
+    <div class="card">
+      <h2>Додати ${label==='Сертифікати'?'сертифікат':'грамоту'}</h2>
+      <div class="row">
+        <div class="field" style="flex:1; min-width:200px;">
+          <label for="att-${category}-title">Назва</label>
+          <input type="text" id="att-${category}-title" placeholder="Напр., Сертифікат про підвищення кваліфікації">
+        </div>
+        <div class="field">
+          <label for="att-${category}-date">Дата видачі</label>
+          <input type="date" id="att-${category}-date">
+        </div>
+      </div>
+      <div class="field" style="margin-top:10px;">
+        <label class="btn btn-ghost file-upload-btn" for="att-${category}-file" style="display:inline-flex; width:fit-content;">Обрати файл (зображення або PDF, до 4 МБ)</label>
+        <input type="file" id="att-${category}-file" accept="image/*,.pdf" style="display:none;">
+        <p class="empty-hint" id="att-${category}-filename" style="margin:4px 0 0;">Файл не обрано</p>
+      </div>
+    </div>
+    <div class="card">
+      <h2>${label} (${items.length})</h2>
+      ${items.length ? items.map(item=>`
+        <div class="period-item att-item">
+          <div class="period-item-head">
+            <div class="period-item-title" style="display:flex; align-items:center; gap:8px;">${fileIconSvg(item.mimeType)} ${escapeHtml(item.title)}</div>
+            <div class="period-item-actions">
+              <button class="btn btn-ghost btn-icon" data-att-view="${category}:${item.id}" aria-label="Переглянути" title="Переглянути">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+              <button class="btn btn-ghost btn-icon" data-att-download="${category}:${item.id}" aria-label="Завантажити" title="Завантажити">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/></svg>
+              </button>
+              <button class="btn btn-danger btn-icon" data-att-delete="${category}:${item.id}" aria-label="Видалити">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+              </button>
+            </div>
+          </div>
+          <div class="period-item-dates mono">${item.issuedDate ? item.issuedDate.split('-').reverse().join('.') + ' · ' : ''}${escapeHtml(item.fileName||'')}</div>
+        </div>`).join('') : `<p class="empty-hint">Поки що нічого не завантажено.</p>`}
+    </div>
+  `;
+}
+
+function renderAttestationTab(){
+  const c = document.getElementById('content');
+  c.innerHTML = renderAttestationCategory('certificates', 'Сертифікати') + renderAttestationCategory('awards', 'Грамоти');
+
+  ['certificates','awards'].forEach(category=>{
+    const fileInput = document.getElementById(`att-${category}-file`);
+    const filenameEl = document.getElementById(`att-${category}-filename`);
+    fileInput.onchange = async ()=>{
+      const file = fileInput.files[0];
+      if(!file){ return; }
+      filenameEl.textContent = file.name;
+      const maxBytes = 4*1024*1024;
+      if(file.size > maxBytes){
+        showToast('Файл завеликий (максимум 4 МБ). Стисніть зображення або скануйте з меншою якістю.');
+        fileInput.value=''; filenameEl.textContent='Файл не обрано'; return;
+      }
+      showToast('Завантажуємо файл...');
+      try{
+        const dataUrl = await new Promise((resolve,reject)=>{
+          const reader = new FileReader();
+          reader.onload = ()=>resolve(reader.result);
+          reader.onerror = ()=>reject(new Error('read-failed'));
+          reader.readAsDataURL(file);
+        });
+        const id = Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+        const key = attestationFileKey(id);
+        await AppStorage.set(key, dataUrl, false);
+        const titleVal = document.getElementById(`att-${category}-title`).value.trim();
+        const dateVal = document.getElementById(`att-${category}-date`).value;
+        state.attestation[category].push({ id, title: titleVal || file.name, issuedDate: dateVal, fileName: file.name, mimeType: file.type, storageKey: key });
+        await saveState();
+        showToast('Файл завантажено');
+        renderAttestationTab();
+      }catch(err){
+        console.error('Помилка завантаження файлу атестації:', err);
+        showToast('Не вдалося завантажити файл. Спробуйте ще раз або з меншим файлом.');
+        fileInput.value=''; filenameEl.textContent='Файл не обрано';
+      }
+    };
+  });
+
+  c.querySelectorAll('[data-att-view]').forEach(btn=>{
+    btn.onclick = async ()=>{
+      const [category, id] = btn.dataset.attView.split(':');
+      const item = state.attestation[category].find(i=>i.id===id);
+      if(!item) return;
+      const w = window.open('', '_blank');
+      if(w) w.document.write('Завантаження…');
+      try{
+        const res = await AppStorage.get(item.storageKey);
+        if(!res || !res.value){ if(w) w.close(); showToast('Файл не знайдено в сховищі'); return; }
+        if(w){
+          if(item.mimeType && item.mimeType.startsWith('image/')){
+            w.document.open();
+            w.document.write(`<title>${escapeHtml(item.title)}</title><body style="margin:0;background:#111;display:flex;align-items:center;justify-content:center;min-height:100vh;"><img src="${res.value}" style="max-width:100%;max-height:100vh;"></body>`);
+            w.document.close();
+          } else {
+            w.location.href = res.value;
+          }
+        }
+      }catch(err){
+        console.error(err);
+        if(w) w.close();
+        showToast('Не вдалося відкрити файл');
+      }
+    };
+  });
+  c.querySelectorAll('[data-att-download]').forEach(btn=>{
+    btn.onclick = async ()=>{
+      const [category, id] = btn.dataset.attDownload.split(':');
+      const item = state.attestation[category].find(i=>i.id===id);
+      if(!item) return;
+      try{
+        const res = await AppStorage.get(item.storageKey);
+        if(!res || !res.value){ showToast('Файл не знайдено в сховищі'); return; }
+        const a = document.createElement('a');
+        a.href = res.value;
+        a.download = item.fileName || 'file';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      }catch(err){
+        console.error(err);
+        showToast('Не вдалося завантажити файл');
+      }
+    };
+  });
+  c.querySelectorAll('[data-att-delete]').forEach(btn=>{
+    btn.onclick = async ()=>{
+      const [category, id] = btn.dataset.attDelete.split(':');
+      const item = state.attestation[category].find(i=>i.id===id);
+      state.attestation[category] = state.attestation[category].filter(i=>i.id!==id);
+      saveState();
+      if(item){ try{ await AppStorage.delete(item.storageKey, false); }catch(e){ /* ключа могло вже не бути */ } }
+      renderAttestationTab();
+    };
+  });
+}
+
+/* ====================== ДОПОМІЖНІ ====================== */
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function cssEscape(str){
+  return String(str).replace(/["\\]/g, '\\$&');
+}
+
+/* ====================== СТАРТ ====================== */
+(async function init(){
+  document.getElementById('content').innerHTML = `<div class="loader"><span class="spinner"></span> Завантажуємо ваш щоденник...</div>`;
+  await loadState();
+  setTab('calendar');
+})();
+</script>
+</body>
+</html>
