@@ -4,6 +4,10 @@
   "functions": {
     "api/**/*.js": {
       "maxDuration": 10
+    },
+    "api/app-content.js": {
+      "maxDuration": 10,
+      "includeFiles": "app-content/**"
     }
   }
 }
