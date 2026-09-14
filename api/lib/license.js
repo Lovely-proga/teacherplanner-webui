@@ -22,4 +22,21 @@ function evaluateKey(entry) {
   };
 }
 
-module.exports = { evaluateKey };
+// Добавляет запись об активации (кто и когда воспользовался ключом) в историю
+// ключа. Хранится отдельно от логики валидности — это просто журнал для
+// админ-панели. Ограничиваем историю последними 200 записями, чтобы
+// database.json не разрастался бесконечно от одного активного ключа.
+function recordActivation(entry, ip, userAgent) {
+  entry.activations = Array.isArray(entry.activations) ? entry.activations : [];
+  entry.activations.push({
+    ip: ip || "unknown",
+    userAgent: userAgent || "unknown",
+    activatedAt: new Date().toISOString(),
+  });
+  const MAX_RECORDS = 200;
+  if (entry.activations.length > MAX_RECORDS) {
+    entry.activations = entry.activations.slice(entry.activations.length - MAX_RECORDS);
+  }
+}
+
+module.exports = { evaluateKey, recordActivation };

@@ -169,6 +169,30 @@
   }
   .panel{ position:relative; }
 
+  .uses-btn{
+    background:none; border:none; padding:0; cursor:pointer;
+    color:var(--accent); font-family:'JetBrains Mono',ui-monospace,monospace;
+    font-size:13px; text-decoration:underline dotted; text-underline-offset:3px;
+  }
+  .uses-btn:hover{ color:#f0c26e; }
+  .uses-plain{ font-family:'JetBrains Mono',ui-monospace,monospace; font-size:13px; }
+
+  .activations-panel{ width:560px; }
+  .activations-panel h2{ margin-bottom:4px; }
+  .activations-sub{ color:var(--text-dim); font-size:12px; margin:0 0 18px; }
+  .activations-table{ width:100%; border-collapse:collapse; font-size:12.5px; }
+  .activations-table th{
+    text-align:left; color:var(--text-dim); font-weight:500; font-size:10.5px;
+    padding:0 8px 6px; border-bottom:1px solid var(--border);
+  }
+  .activations-table td{
+    padding:9px 8px; border-bottom:1px solid var(--border); vertical-align:top;
+  }
+  .activations-table td.ip{ font-family:'JetBrains Mono',monospace; white-space:nowrap; }
+  .activations-table td.ua{ color:var(--text-dim); word-break:break-word; }
+  .activations-table td.date{ white-space:nowrap; color:var(--text-dim); }
+  .activations-empty{ color:var(--text-dim); font-size:13px; padding:20px 0; text-align:center; }
+
   #toast{
     position:fixed; bottom:20px; left:50%; transform:translateX(-50%);
     background:var(--surface-2); border:1px solid var(--border); color:var(--text);
@@ -278,6 +302,16 @@
         <button type="button" class="btn btn-ghost" id="cancelBtn">Отмена</button>
       </div>
     </form>
+  </div>
+</div>
+
+<!-- SLIDE-OVER: activations history -->
+<div class="overlay" id="activationsOverlay">
+  <div class="panel activations-panel">
+    <button class="close-x" id="closeActivations">✕</button>
+    <h2 id="activationsTitle">Активации ключа</h2>
+    <p class="activations-sub" id="activationsSub"></p>
+    <div id="activationsBody"></div>
   </div>
 </div>
 
@@ -392,7 +426,9 @@ function render(){
           </div>
         </td>
         <td><span class="badge ${st}">${statusLabel[st]}</span></td>
-        <td>${uses}</td>
+        <td>${Array.isArray(k.activations) && k.activations.length
+          ? `<button class="uses-btn" data-act="activations">${uses} · показать</button>`
+          : `<span class="uses-plain">${uses}</span>`}</td>
         <td>${expires}</td>
         <td class="muted">${notes}</td>
         <td>
@@ -424,6 +460,7 @@ $("tbody").addEventListener("click", async (e)=>{
 
   try{
     if(act === "edit"){ openPanel(entry); }
+    if(act === "activations"){ openActivationsPanel(entry); }
 
     if(act === "ban" || act === "unban"){
       btn.disabled = true;
@@ -463,6 +500,35 @@ function openPanel(entry){
   $("overlay").classList.add("open");
 }
 function closePanel(){ $("overlay").classList.remove("open"); state.editingKey = null; }
+
+// ---------- Activations history panel ----------
+function openActivationsPanel(entry){
+  const list = [...(entry.activations || [])].sort((a,b)=>
+    (b.activatedAt || "").localeCompare(a.activatedAt || "")
+  );
+
+  $("activationsTitle").textContent = `Активации ключа`;
+  $("activationsSub").innerHTML = `<span class="mono">${escapeHtml(entry.key)}</span> · ${list.length} запис(ей)`;
+
+  $("activationsBody").innerHTML = list.length
+    ? `<table class="activations-table">
+        <thead><tr><th>Дата</th><th>IP-адрес</th><th>User-Agent</th></tr></thead>
+        <tbody>
+          ${list.map(a => `
+            <tr>
+              <td class="date">${a.activatedAt ? new Date(a.activatedAt).toLocaleString("ru-RU") : "—"}</td>
+              <td class="ip">${escapeHtml(a.ip || "—")}</td>
+              <td class="ua" title="${escapeAttr(a.userAgent || "")}">${escapeHtml(a.userAgent || "—")}</td>
+            </tr>`).join("")}
+        </tbody>
+      </table>`
+    : `<div class="activations-empty">Активаций пока не было.</div>`;
+
+  $("activationsOverlay").classList.add("open");
+}
+function closeActivationsPanel(){ $("activationsOverlay").classList.remove("open"); }
+$("closeActivations").addEventListener("click", closeActivationsPanel);
+$("activationsOverlay").addEventListener("click", (e)=>{ if(e.target === $("activationsOverlay")) closeActivationsPanel(); });
 
 $("addBtn").addEventListener("click", ()=> openPanel(null));
 $("closePanel").addEventListener("click", closePanel);

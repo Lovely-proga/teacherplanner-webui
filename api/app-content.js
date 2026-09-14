@@ -7,7 +7,8 @@
 // эндпоинт, и только с действительным лицензионным ключом.
 
 const { getDatabase, withDatabase } = require("./lib/github");
-const { evaluateKey } = require("./lib/license");
+const { evaluateKey, recordActivation } = require("./lib/license");
+const { getClientIp } = require("./lib/http");
 const encodedApp = require("../app-content/teacher-planner.b64.js");
 
 let cachedHtml = null;
@@ -31,18 +32,25 @@ module.exports = async (req, res) => {
 
   try {
     let result;
-    if (consumeUse) {
-      // Первая активация ключа на устройстве — засчитываем использование.
+
+    // Строгое сравнение с true: любое иное значение (undefined, false,
+    // случайно пришедшая строка и т.п.) трактуется как "тихая проверка",
+    // без списания использования. Это именно то, что вызывается при каждой
+    // перезагрузке страницы для уже сохранённого на устройстве ключа.
+    if (consumeUse === true) {
+      const ip = getClientIp(req);
+      const userAgent = req.headers["user-agent"] || "unknown";
       await withDatabase((db) => {
         const entry = db.keys.find((k) => k.key === key);
         result = evaluateKey(entry);
         if (result.valid) {
           entry.uses = (entry.uses || 0) + 1;
+          recordActivation(entry, ip, userAgent);
+          result.remainingUses =
+            entry.maxUses != null ? Math.max(entry.maxUses - entry.uses, 0) : null;
         }
-      }, `activate app for key ${key}`);
+      }, `activate app for key ${key} from ${ip}`);
     } else {
-      // Повторная тихая проверка сохранённого на устройстве ключа —
-      // использование не списываем, просто убеждаемся, что ключ ещё активен.
       const { json } = await getDatabase();
       const entry = json.keys.find((k) => k.key === key);
       result = evaluateKey(entry);

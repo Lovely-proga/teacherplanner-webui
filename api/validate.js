@@ -3,7 +3,8 @@
 // никогда не возвращает всю базу или чужие ключи.
 
 const { getDatabase, withDatabase } = require("./lib/github");
-const { evaluateKey } = require("./lib/license");
+const { evaluateKey, recordActivation } = require("./lib/license");
+const { getClientIp } = require("./lib/http");
 
 module.exports = async (req, res) => {
   if (req.method !== "POST") {
@@ -17,17 +18,23 @@ module.exports = async (req, res) => {
   }
 
   try {
-    if (consumeUse) {
+    // Строгое сравнение с true — списываем использование и пишем в журнал
+    // активаций, только когда клиент явно просит именно это, а не при любом
+    // "истинном" значении, дошедшем до сервера в неожиданном виде.
+    if (consumeUse === true) {
+      const ip = getClientIp(req);
+      const userAgent = req.headers["user-agent"] || "unknown";
       let result;
       await withDatabase((db) => {
         const entry = db.keys.find((k) => k.key === key);
         result = evaluateKey(entry);
         if (result.valid) {
           entry.uses = (entry.uses || 0) + 1;
+          recordActivation(entry, ip, userAgent);
           result.remainingUses =
             entry.maxUses != null ? Math.max(entry.maxUses - entry.uses, 0) : null;
         }
-      }, `validate+use key ${key}`);
+      }, `validate+use key ${key} from ${ip}`);
       return res.status(200).json(result);
     }
 
